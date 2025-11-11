@@ -1,0 +1,510 @@
+@charset "utf-8";
+@import url("reset.css");
+
+html {
+    font-size: 10px;
+}
+
+.sticky-header {
+    position: absolute; // 초기엔 main-visual 안에 있음
+    bottom: 0; // 화면 하단에 붙음
+    left: 0;
+    width: 100%;
+    height: 8rem;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    background-color: transparent; // 초기 투명
+
+    &.fixed {
+        position: fixed;
+        top: 0;
+        bottom: auto;
+        backdrop-filter: blur(8px);
+        background-color: rgba(255, 255, 255, 0.063);
+        transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+    }
+
+    .inner {
+        max-width: 160rem; // 1600px
+        width: calc(100% - 6rem); // 60px 제외
+        height: 100%;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        // ==============================
+        // Logo
+        // ==============================
+        .logo {
+            a {
+                font-size: 2.4rem; // 24px
+                font-weight: bold;
+                color: #ffffff;
+                text-decoration: none;
+                text-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, 0.3); // 2px, 4px 그림자
+                transition: color 0.3s ease;
+
+                &:hover {
+                    color: #ffeedd;
+                }
+            }
+        }
+
+        // ==============================
+        // Navigation
+        // ==============================
+        nav {
+            ul {
+                display: flex;
+                gap: 8rem; // 80px 간격
+
+                li {
+                    a {
+                        font-size: 1.8rem; // 18px
+                        letter-spacing: 0.1rem; // 자간 1px
+                        color: #ffffff;
+                        text-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, 0.3); // 그림자
+                        text-decoration: none;
+                        transition: color 0.3s ease;
+
+                        &:hover {
+                            color: #ffeedd;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+.main-visual {
+    position: relative;
+    width: 100%;
+    height: 100vh; // 1080px를 rem 단위로 변환
+    overflow: hidden;
+
+    &.fixed {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        z-index: 2;
+    }
+
+    &.end {
+        position: relative;
+        z-index: 1;
+    }
+
+    .bg-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(1);
+            transition: transform 0.1s ease-out;
+            /* 프레임 부드럽게 */
+            will-change: transform;
+
+        }
+    }
+
+    .cloud-text {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+    }
+}
+
+
+.about_me {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    background: #FFF8D6;
+    background: linear-gradient(181deg, rgba(255, 248, 214, 1) 0%, rgba(243, 227, 156, 1) 10%, rgba(251, 207, 175, 1) 38%, rgba(243, 207, 225, 1) 59%);
+
+    h4.title {
+        font-size: 2.4rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 2.5rem;
+    }
+
+    .inner {
+        max-width: 128rem;
+        width: calc(100% - 4rem);
+        margin: 0 auto;
+
+        h4.title {}
+
+        .title_about_me {
+            padding-top: 18rem;
+            font-size: 4.8rem;
+        }
+
+        .about_list {
+            display: flex;
+
+            .about {
+                width: 253px;
+
+                .profile {
+                    width: 100%;
+                    height: 338px;
+
+
+                    img {
+                        width: 100%;
+                        height: 100%;
+                        border-radius: 2.5rem;
+                        object-fit: cover;
+                    }
+                }
+            }
+
+
+            .about_box {
+                width: calc(100% - 30.3rem);
+                margin-left: 6rem;
+
+                .info {
+
+                    display: flex;
+                    flex-wrap: wrap; // 혹시 넘칠 경우 줄바꿈되게
+                    gap: 8rem;
+                    margin-bottom: 5rem;
+
+                    .label {
+                        width: 70px;
+                        font-size: 1.8rem; // 18px
+                    }
+
+                    .value {
+                        font-size: 2rem; // 20px
+
+                    }
+
+                    .profile_info {
+                        .profile_list {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 1.5rem;
+
+                            li {
+                                display: flex;
+                                gap: 1.8rem;
+                               
+                            }
+                        }
+                    }
+
+                    .education {
+                        .education_list {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 1.5rem;
+
+                            li {
+                                display: flex;
+                                flex-wrap: wrap;
+                                gap: 1.8rem;
+                                font-size: 2rem;
+
+                                .year {
+                                    font-size: 1.8rem;
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+                .skill {
+                    .skill_icons {
+                        display: flex;
+                        justify-content: space-between;
+
+                        .skill_item {
+                            position: relative;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            cursor: pointer;
+
+                            img {
+                                width: 48px;
+                                height: 48px;
+                                object-fit: cover;
+                                transition: transform 0.3s ease;
+                            }
+
+                            .skill_desc {
+                                position: absolute;
+                                top: 100%; // 아이콘 바로 아래
+                                margin-top: 0.5rem; // 아이콘과의 간격
+                                background: #333;
+                                color: #fff;
+                                padding: 0.5rem 1rem;
+                                border-radius: 25px;
+                                font-size: 1.6rem; // rem 단위
+                                white-space: nowrap;
+                                opacity: 0;
+                                pointer-events: none;
+                                transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+                                &::before {
+                                    content: "";
+                                    position: absolute;
+                                    width: 1rem;
+                                    height: 1rem;
+                                    background: #333;
+                                    top: -0.4rem; // 툴팁 위쪽 삼각형
+                                    left: 50%;
+                                    transform: translateX(-50%) rotate(45deg);
+                                }
+                            }
+
+
+                            &:hover {
+                                img {
+                                    transform: scale(1.1);
+                                }
+
+                                .skill_desc {
+                                    opacity: 1;
+                                    pointer-events: auto;
+                                    margin-top: 1rem; // 살짝 내려오는 애니메이션 느낌
+                                }
+
+
+                            }
+
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+}
+
+.bottom-wrapper {
+    position: relative;
+
+    .bottom {
+        position: absolute; // absolute로 부모 기준 위치 고정
+        top: -220px; // 부모(.about_me) 하단에 붙임
+        left: 0;
+        width: 100%;
+        height: 220px;
+        overflow: hidden;
+
+
+
+        div {
+            position: absolute;
+            background-position-y: bottom;
+            background-repeat: repeat-x;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            /* background-size: cover; */
+        }
+
+        .bg1 {
+            background-image: url("../img/sec_clouds1.png");
+            z-index: 1;
+            transform: translateY(-15px);
+            animation: move 15s infinite linear reverse;
+        }
+
+        .bg2 {
+            background-image: url("../img/sec_clouds2.png");
+            z-index: 2;
+            transform: translateY(15px);
+            animation: move 15s infinite linear;
+        }
+
+        .bg3 {
+            background-image: url("../img/sec_clouds3.png");
+            z-index: 3;
+            animation: move 15s infinite linear reverse;
+        }
+    }
+
+    @keyframes move {
+        from {
+            background-position-x: 0;
+        }
+
+        to {
+            background-position-x: 500px;
+        }
+    }
+}
+
+
+$sky-gradient: linear-gradient(181deg,
+        #EFD9EA 2%, // 연분홍
+        #C7E3F9 27%, // 연하늘
+        #B0D3F4 43%, // 중간 하늘색
+        #C9B3D7 63%, // 연보라
+        #F0B395 70%, // 살짝 톤 다운한 노을색
+        #685595 84%, // 딥 퍼플
+        #11133A 100% // 밤하늘
+    );
+
+.bg-gradient {
+    height: 500vh; // 최소 한 화면 높이
+    background: $sky-gradient;
+    /* background-attachment: fixed; */
+    // 하늘이 고정된 듯한 느낌
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    // 선택: 색 전환을 부드럽게 하고 싶다면
+    transition: background 1s ease-in-out;
+
+    .vision {
+        width: 100%;
+
+        p {
+            font-size: 3.8rem;
+            color: #fff;
+            text-align: center;
+            line-height: 1.4;
+            /* 행간: 1.4배 정도로 여유 있게 */
+            letter-spacing: 0.02em;
+            /* 자간: 글자 사이 약간 띄움 */
+            padding: 20rem 0 16rem;
+        }
+
+    }
+
+
+    #project {
+        .title_project {
+            text-align: center;
+            font-size: 16rem;
+            color: #fff;
+
+            opacity: 0;
+            transform: translate3d(0, 50px, 0);
+            transition: all 1s ease-out;
+
+            &.in-view {
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }
+
+        }
+
+        .inner {
+            max-width: 1280px;
+            width: calc(100% - 30px);
+            margin: 0 auto;
+
+            .project_wrap {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 10rem;
+
+                .project_box {
+                    display: flex;
+
+                    /* scroll animation */
+                    opacity: 0;
+                    transform: translate3d(0, 100px, 0); //좀 더 아래에서 올라오는 느낌
+                    transition: all 1s ease-out;
+
+                    /* 반투명 배경 */
+                    background-color: rgba(255, 255, 255, 0.205);
+                    backdrop-filter: blur(5px);
+                    border-radius: 3rem;
+                    padding: 1rem;
+
+                    /* 카드 테두리 및 빛 효과 */
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+
+                    &.in-view {
+                        opacity: 1;
+                        transform: translate3d(0, 0, 0);
+                    }
+
+
+                    .image {
+                        width: 550px;
+                        height: 360px;
+
+                        img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                        }
+                    }
+
+                    .text_box {
+                        .project_header {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 1.2rem;
+
+                            h3 {
+                                font-size: 3.4rem;
+                            }
+
+                            span {
+                                font-size: 1.5rem;
+                            }
+                        }
+
+                        .project_info {
+                            display: flex;
+
+
+                            .info_label {
+                                display: flex;
+                                flex-direction: column;
+                                gap: 1.4rem;
+                                align-items: start;
+                                li{
+                                    font-size: 2rem;
+                                }
+                            }
+
+                            .info_value {
+                                display: flex;
+                                flex-direction: column;
+                                gap: 1.5rem;
+                                align-items: start;
+                                li{
+                                    font-size: 1.8rem;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+}

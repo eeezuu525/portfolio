@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포트폴리오</title>
+    <link rel="stylesheet" href="css/index.scss">
+    <link rel="stylesheet" href="css/index.css">
+
+    <script src="lib/jquery-3.7.1.min.js"></script>
+    <script src="lib/gsap.min.js"></script>
+    <script>
+        $(function () {
+            const $header = $('.sticky-header');
+            const $mainVisual = $('.main-visual');
+
+            // 헤더가 fixed 상태가 될 기준 = main-visual 끝
+            const stickyOffset = $mainVisual.offset().top + $mainVisual.outerHeight() - $header.outerHeight();
+
+            $(window).on('scroll', function () {
+                if ($(window).scrollTop() >= stickyOffset) {
+                    $header.addClass('fixed');
+                } else {
+                    $header.removeClass('fixed');
+                }
+            });
+        });
+    </script>
+    <script type="module">
+        import * as THREE from "https://cdn.skypack.dev/three@0.133.1/build/three.module";
+        import { OrbitControls } from 'https://cdn.skypack.dev/three@0.133.1/examples/jsm/controls/OrbitControls';
+
+        // DOM
+        const containerEl = document.querySelector('.cloud-text');
+
+        // Settings
+        const fontName = 'Verdana';
+        const textureFontSize = 60; // 첫 번째 줄 기준
+        const fontScaleFactor = 0.05;
+
+        // Scene globals
+        let scene, camera, renderer, textCanvas, textCtx, particleGeometry, particleMaterial, instancedMesh, dummy, clock;
+
+        // 텍스트
+        let lines = ["Welcome to my sky", "eeezuu Portfolio"];
+        let fontSizes = [textureFontSize, textureFontSize * 0.6]; // 두 번째 줄 작게
+
+        // Coordinates / particles
+        let textureCoordinates = [];
+        let particles = [];
+        let stringBox = { wTexture: 500, wScene: 0, hTexture: 100, hScene: 0 };
+
+        // ------------------
+        init();
+        refreshText();
+        render();
+
+        // ------------------
+        function init() {
+            const aspect = window.innerWidth / window.innerHeight;
+            camera = new THREE.OrthographicCamera(
+                -aspect * 10, aspect * 10, 10, -10, 0.1, 1000
+            );
+            camera.position.z = 40; // 원하는 깊이로 고정
+
+            scene = new THREE.Scene();
+
+            renderer = new THREE.WebGLRenderer({ alpha: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            containerEl.appendChild(renderer.domElement);
+
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableZoom = false;
+            controls.enablePan = false;
+
+            textCanvas = document.createElement('canvas');
+            textCtx = textCanvas.getContext('2d');
+
+            particleGeometry = new THREE.PlaneGeometry(1, 1);
+            const texture = new THREE.TextureLoader().load('https://ksenia-k.com/img/threejs/smoke.png');
+            particleMaterial = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                alphaMap: texture,
+                depthTest: false,
+                opacity: 0.3,
+                transparent: true
+            });
+
+            dummy = new THREE.Object3D();
+            clock = new THREE.Clock();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        // ------------------
+        function refreshText() {
+            stringBox.wScene = stringBox.wTexture * fontScaleFactor;
+            stringBox.hScene = stringBox.hTexture * fontScaleFactor;
+
+            sampleCoordinates();
+
+            particles = textureCoordinates.map(c => {
+                const p = new Particle([c.x * fontScaleFactor, c.y * fontScaleFactor]);
+
+                // y좌표 기준으로 두 번째 줄 판단 (첫 줄 높이 = fontSizes[0] * 0.9 정도)
+                if (c.y > fontSizes[0] * 0.9) {
+                    p.maxScale *= 0.4; // 두 번째 줄 입자 작게
+                }
+
+                return p;
+            });
+
+
+            recreateInstancedMesh();
+            makeTextFitScreen();
+        }
+
+        // ------------------
+        function sampleCoordinates() {
+            // 캔버스 크기 자동 계산
+            textCtx.font = `100 ${textureFontSize}px ${fontName}`;
+            const metrics = textCtx.measureText(lines[0]);
+            const width = Math.max(metrics.width, 200);
+            const height = fontSizes.reduce((sum, fs) => sum + fs * 1.2, 0); // 줄 높이 합계
+
+            textCanvas.width = width + 20;
+            textCanvas.height = height + 20;
+            stringBox.wTexture = textCanvas.width;
+            stringBox.hTexture = textCanvas.height;
+
+            textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
+
+            let lineSpacing = 20;
+            let yOffset = 0;
+            for (let i = 0; i < lines.length; i++) {
+                textCtx.font = `100 ${fontSizes[i]}px ${fontName}`;
+                textCtx.fillStyle = '#2a9d8f';
+
+                const metrics = textCtx.measureText(lines[i]);
+                const x = (textCanvas.width - metrics.width) / 2;  // 캔버스 가로 중앙
+                yOffset += fontSizes[i] * 0.8 + lineSpacing;
+                textCtx.fillText(lines[i], x, yOffset);
+            }
+
+            // 이미지 데이터 샘플링
+            const imageData = textCtx.getImageData(0, 0, textCanvas.width, textCanvas.height);
+            textureCoordinates = [];
+            for (let y = 0; y < textCanvas.height; y += 1) {
+                for (let x = 0; x < textCanvas.width; x += 1) {
+                    if (imageData.data[(x + y * textCanvas.width) * 4] > 0) {
+                        textureCoordinates.push({ x, y });
+                    }
+                }
+            }
+        }
+
+        // ------------------
+        function Particle([x, y]) {
+            this.x = x + 0.15 * (Math.random() - 0.5);
+            this.y = y + 0.15 * (Math.random() - 0.5);
+            this.z = 0;
+
+            this.isGrowing = true;
+            this.toDelete = false;
+
+            this.scale = 0;
+            this.maxScale = 0.1 + 1 * Math.pow(Math.random(), 10);
+            this.deltaScale = 0.03 + 0.03 * Math.random();
+            this.age = Math.PI * Math.random();
+            this.ageDelta = 0.01 + 0.02 * Math.random();
+            this.rotationZ = 0.5 * Math.random() * Math.PI;
+            this.deltaRotation = 0.01 * (Math.random() - 0.5);
+
+            this.grow = function () {
+                this.age += this.ageDelta;
+                this.rotationZ += this.deltaRotation;
+                if (this.isGrowing) {
+                    this.scale += this.deltaScale;
+                    if (this.scale >= this.maxScale) this.isGrowing = false;
+                } else if (this.toDelete) {
+                    this.scale -= this.deltaScale;
+                    if (this.scale <= 0) {
+                        this.scale = 0;
+                        this.deltaScale = 0;
+                    }
+                } else {
+                    this.scale = this.maxScale + 0.3 * Math.sin(this.age);
+                }
+            }
+        }
+
+        // ------------------
+        function recreateInstancedMesh() {
+            if (instancedMesh) scene.remove(instancedMesh);
+            instancedMesh = new THREE.InstancedMesh(particleGeometry, particleMaterial, particles.length);
+            scene.add(instancedMesh);
+
+            /* instancedMesh.position.x = -0.5 * stringBox.wScene;
+            instancedMesh.position.y = -0.5 * stringBox.hScene; */
+        }
+
+        function updateParticlesMatrices() {
+            particles.forEach((p, idx) => {
+                p.grow();
+                dummy.quaternion.copy(camera.quaternion);
+                dummy.rotation.z += p.rotationZ;
+                dummy.scale.set(p.scale, p.scale, p.scale);
+
+                // 캔버스 중앙 기준으로 Scene 중앙 맞춤
+                dummy.position.set(
+                    p.x - stringBox.wTexture / 2 * fontScaleFactor, // X축 중앙
+                    stringBox.hScene - p.y,                         // Y축 반전
+                    p.z
+                );
+
+                dummy.updateMatrix();
+                instancedMesh.setMatrixAt(idx, dummy.matrix);
+            });
+            instancedMesh.instanceMatrix.needsUpdate = true;
+        }
+
+        function makeTextFitScreen() {
+            /* const fov = camera.fov * (Math.PI / 180);
+            const fovH = 2 * Math.atan(Math.tan(fov / 2) * camera.aspect);
+            const dx = Math.abs(0.7 * stringBox.wScene / Math.tan(0.5 * fovH));
+            const dy = Math.abs(0.6 * stringBox.hScene / Math.tan(0.5 * fov));
+            const factor = Math.max(dx, dy) / camera.position.length();
+            if (factor > 1) camera.position.multiplyScalar(factor); */
+        }
+
+        function render() {
+            requestAnimationFrame(render);
+            updateParticlesMatrices();
+            renderer.render(scene, camera);
+        }
+    </script>
+    <script>
+        $(function () {
+            const $window = $(window);
+            const $bgImage = $('.main-visual .bg-image img');
+            const mainVisualHeight = $('.main-visual').outerHeight();
+
+            $window.on('scroll', function () {
+                const scrollTop = $window.scrollTop();
+
+                // 메인비주얼 구간 내에서만 효과 적용
+                if (scrollTop <= mainVisualHeight) {
+                    const progress = scrollTop / mainVisualHeight; // 0 ~ 1 비율
+                    const scale = 1 + progress * 0.3; // 스크롤할수록 1 → 1.3배 확대
+                    $bgImage.css('transform', `scale(${scale})`);
+                }
+            });
+        });
+    </script>
+    <script>
+        $(function () {
+            var $title = $('.title_project');
+            var $projects = $('.project_box');
+            var $window = $(window);
+
+            // 제목 등장 체크
+            function check_title_in_view() {
+                var window_top = $window.scrollTop();
+                var window_bottom = window_top + $window.height();
+
+                $title.each(function () {
+                    var $el = $(this);
+                    var element_top = $el.offset().top;
+                    var element_bottom = element_top + $el.outerHeight();
+
+                    if ((element_bottom >= window_top) && (element_top <= window_bottom)) {
+                        $el.addClass('in-view');
+                    }
+                });
+            }
+
+            // 프로젝트 박스 등장 체크 (제목 in-view 완료 후)
+            function check_project_in_view() {
+                if (!$title.hasClass('in-view')) return;
+
+                var window_top = $window.scrollTop();
+                var window_bottom = window_top + $window.height();
+
+                $projects.each(function (i) {
+                    var $el = $(this);
+                    var element_top = $el.offset().top;
+                    var element_bottom = element_top + $el.outerHeight();
+
+                    if ((element_bottom >= window_top) && (element_top <= window_bottom)) {
+                        setTimeout(function () {
+                            $el.addClass('in-view');
+                        }, i * 200); // 0.2초 간격
+                    }
+                });
+            }
+
+            // 스크롤 이벤트
+            $window.on('scroll resize', function () {
+                check_title_in_view();
+                check_project_in_view();
+            });
+
+            // 초기 트리거
+            $window.trigger('scroll');
+        });
+    </script>
+
+</head>
+
+<body>
+    <!-- 1. 인트로 -->
+    <!-- <section id="intro">
+        <div class="intro-bg"></div> 
+        <img src="img/5e34788077d858e1cbd6ce30323910d6-Photoroom 1.png" class="star" alt="별 이미지">
+        <div class="flash"></div>
+        
+    </section> -->
+
+    <!-- 2. 포트폴리오 -->
+    <div id="portfolio">
+
+
+
+        <!-- 메인 비주얼 -->
+        <!--        <section class="main-visual">
+            <div class="bg-image">
+                <img src="img/main-visual.png" alt="메인 배경">
+            </div>
+
+            클라우드 텍스트 / 입자 캔버스
+           
+        </section> -->
+
+        <section class="main-visual">
+            <div class="bg-image">
+                <img src="img/main-.svg" alt="메인 배경">
+            </div>
+
+            <div class="cloud-text"></div>
+        </section>
+
+        <!-- 헤더 -->
+        <header class="sticky-header">
+            <div class="inner">
+                <h1 class="logo"><a href="#">eeezuu</a></h1>
+                <nav>
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Works</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <section class="about_me">
+            <div class="inner">
+                <h2 class="title_about_me">About me</h2>
+                <div class="about_list">
+                    <div class="about">
+                        <div class="profile">
+                            <img src="img/profile.jpg" alt="eeezuu">
+                        </div><!-- .profile end -->
+                        <div class="about_btn">
+                            <a href="#">이력서 PDF</a>
+                        </div><!-- .about btn end-->
+                    </div><!-- .about end -->
+
+                    <div class="about_box">
+                        <div class="info">
+                            <div class="profile_info">
+                                <h4 class="title">Profile</h4>
+                                <ul class="profile_list">
+                                    <li>
+                                        <span class="label">NAME</span>
+                                        <span class="value">김은주</span>
+                                    </li>
+                                    <li>
+                                        <span class="label">BIRTH</span>
+                                        <span class="value">1995.05.25</span>
+                                    </li>
+                                    <li>
+                                        <span class="label">PHONE</span>
+                                        <span class="value">010-4148-2098</span>
+                                    </li>
+                                    <li>
+                                        <span class="label">E-MAIL</span>
+                                        <span class="value">eeezuu525@naver.com</span>
+                                    </li>
+                                </ul>
+                            </div><!-- .profile_info end -->
+                            <div class="education">
+                                <h4 class="title">education</h4>
+                                <ul class="education_list">
+                                    <li>
+                                        <span class="year">2025</span>
+                                        그린컴퓨터아카데미 UI/UX 반응형 웹퍼블리셔 양성과정 수료
+                                    </li>
+                                    <li>
+                                        <span class="year">2025</span>
+                                        고부기 크리에이터 수료
+                                    </li>
+                                    <li>
+                                        <span class="year">2016</span>
+                                        동의과학대학교 실내건축학과 졸업
+                                    </li>
+                                </ul>
+                            </div><!-- .education end -->
+                        </div><!-- .info end -->
+                        <div class="skill">
+                            <h4 class="title">skill</h4>
+                            <div class="skill_icons">
+                                <div class="skill_item">
+                                    <img src="icon/figma.svg" alt="figma">
+                                    <p class="skill_desc">HTML 기본 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/visualstudiocode.svg" alt="Visual Studio Code">
+                                    <p class="skill_desc">CSS 레이아웃 능숙</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/html.svg" alt="html">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/css.svg" alt="css">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/js.svg" alt="JS">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/github.svg" alt="github">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/photo.svg" alt="포토샵">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/lr.svg" alt="라이트룸">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/ai.svg" alt="일러스트">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/pr.svg" alt="프리미어">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/ae.svg" alt="에펙">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <!-- 나머지 8개 아이콘도 동일 구조 반복 -->
+                            </div>
+                        </div><!-- .skill end -->
+                    </div><!-- .about_box end -->
+
+                </div><!-- .about_list -->
+            </div><!-- .inner end -->
+
+        </section><!-- .about_me end -->
+
+        <!-- 움직이는 구름-->
+
+        <div class="bottom-wrapper">
+            <div class="bottom">
+                <div class="bg3"></div>
+                <div class="bg2"></div>
+                <div class="bg1"></div>
+            </div><!-- .bottom end -->
+        </div>
+
+
+            <div class="bg-gradient">
+
+                <section class="vision">
+                    <p>아침의 빛처럼 새로운 가능성을 향해, <br>낮의 구름처럼 부드럽게 이어지고, <br> 밤의 별처럼 나만의 색으로 세상을 비춥니다. <br>하루의 하늘을 쌓아가듯, <br>매
+                        순간의
+                        일에도
+                        진심을 담아 꾸준히 빛나는 사람이 되겠습니다.</p>
+                </section><!-- .vision end -->
+
+                <section id="project">
+                    <h2 class="title_project">PROJECT</h2>
+                    <div class="inner">
+                        <div class="project_wrap">
+                            <div class="project_box">
+                                <div class="image">
+                                    <img src="img/project1.png" alt="문화체육관광부">
+                                </div><!-- image -->
+                                <div class="text_box">
+                                    <div class="project_header">
+                                        <h3>문화체육관광부</h3>
+                                        <span>문화체육관광부의 신뢰감과 소통을 핵심 가치로 한 반응형 웹사이트 리뉴얼 프로젝트</span>
+                                    </div><!-- .project_header end -->
+
+                                    <div class="project_info">
+                                        <ul class="info_label">
+                                            <li>프로젝트</li>
+                                            <li>사용언어</li>
+                                            <li>프로그램</li>
+                                            <li>기여도</li>
+                                        </ul><!-- .info_label -->
+
+                                        <ul class="info_value">
+                                            <li>반응형 웹사이트 리뉴얼</li>
+                                            <li>html, css, Js, JQuery</li>
+                                            <li>VSCode, Figma,Photoshop</li>
+                                            <li>기획, 디자인, 퍼블리싱 100%</li>
+                                        </ul><!-- .info_value -->
+                                    </div><!-- .project_info -->
+
+
+                                    <div class="project_links">
+                                        <a href="#" class="btn link_web">
+                                            Web Site
+                                            <span class="cloud_bg"></span>
+                                        </a><!-- .link_web -->
+
+                                        <a href="#" class="btn link_process">
+                                            Process
+                                            <span class="cloud_bg"></span>
+                                        </a><!-- .link_process -->
+
+                                        <a href="#" class="btn link_figma">
+                                            Figma
+                                            <span class="cloud_bg"></span>
+                                        </a><!-- .link_figma -->
+
+
+                                        <div class="btn link_qr">
+                                            <img class="qr_icon" src="icon/qr_icon.svg" alt="QR코드">
+                                            <div class="qr_popup">
+                                                <img src="" alt="">
+                                            </div><!-- .qr_popup -->
+                                        </div><!-- .btn link_qr -->
+
+                                    </div><!-- .project_links -->
+
+                                </div><!-- .text_box -->
+                            </div><!-- .project_box -->
+                            <div class="project_box">
+                                <div class="image">
+                                    <img src="img/project2.png" alt="sony">
+                                </div><!-- image -->
+                                <div class="text_box">
+                                    <div class="project_header">
+                                        <h3>SONY</h3>
+                                        <span>직접 촬영한 이미지를 중심으로, 감각적이고 몰입감 있는 웹사이트 리뉴얼한 프로젝트</span>
+                                    </div><!-- .project_header end -->
+
+                                    <div class="project_info">
+                                        <ul class="info_label">
+                                            <li>프로젝트</li>
+                                            <li>사용언어</li>
+                                            <li>프로그램</li>
+                                            <li>기여도</li>
+                                        </ul><!-- .info_label -->
+
+                                        <ul class="info_value">
+                                            <li>반응형 웹사이트 리뉴얼</li>
+                                            <li>html, css, Js, JQuery</li>
+                                            <li>VSCode, Figma,Photoshop</li>
+                                            <li>기획, 디자인, 퍼블리싱 100%</li>
+                                        </ul><!-- .info_value -->
+                                    </div><!-- .project_info -->
+
+
+                                    <div class="project_links">
+                                        <a href="#" class="btn link_web">
+                                            Web Site
+                                            <span class="cloud_bg"></span>
+                                        </a><!-- .link_web -->
+
+                                        <a href="#" class="btn link_process">
+                                            Process
+                                            <span class="cloud_bg"></span>
+                                        </a><!-- .link_process -->
+
+                                        <a href="#" class="btn link_figma">
+                                            Figma
+                                            <span class="cloud_bg"></span>
+                                        </a><!-- .link_figma -->
+
+
+                                        <div class="btn link_qr">
+                                            <img class="qr_icon" src="icon/qr_icon.svg" alt="QR코드">
+                                            <div class="qr_popup">
+                                                <img src="" alt="">
+                                            </div><!-- .qr_popup -->
+                                        </div><!-- .btn link_qr -->
+
+                                    </div><!-- .project_links -->
+
+                                </div><!-- .text_box -->
+                            </div><!-- .project_box -->
+                            <div class="project_box">
+                                <div class="image">
+                                    <img src="img/project3.png" alt="해운대블루라인파크">
+                                </div><!-- image -->
+                                <div class="text_box">
+                                    <div class="project_header">
+                                        <h3>해운대블루라인파크</h3>
+                                        <span>부산의 대표 관광지인 해운대 블루라인파크의 매력을 살리고, 외국인 방문객까지 고려한 리뉴얼 프로젝트</span>
+                                    </div><!-- .project_header end -->
+
+                                    <div class="project_info">
+                                        <ul class="info_label">
+                                            <li>프로젝트</li>
+                                            <li>사용언어</li>
+                                            <li>프로그램</li>
+                                            <li>기여도</li>
+                                        </ul><!-- .info_label -->
+
+                                        <ul class="info_value">
+                                            <li>반응형 웹사이트 리뉴얼</li>
+                                            <li>html, css, Js, JQuery</li>
+                                            <li>VSCode, Figma,Photoshop</li>
+                                            <li>기획, 디자인, 퍼블리싱 100%</li>
+                                        </ul><!-- .info_value -->
+                                    </div><!-- .project_info -->
+
+
+                                    <div class="project_links">
+                                        <a href="#" class="btn link_web">
+                                            Web Site
+                                            <span class="cloud_bg"></span>
+                                        </a><!-- .link_web -->
+
+                                        <a href="#" class="btn link_process">
+                                            Process
+                                            <span class="cloud_bg"></span>
+                                        </a><!-- .link_process -->
+
+                                        <a href="#" class="btn link_figma">
+                                            Figma
+                                            <span class="cloud_bg"></span>
+                                        </a><!-- .link_figma -->
+
+
+                                        <div class="btn link_qr">
+                                            <img class="qr_icon" src="icon/qr_icon.svg" alt="QR코드">
+                                            <div class="qr_popup">
+                                                <img src="" alt="">
+                                            </div><!-- .qr_popup -->
+                                        </div><!-- .btn link_qr -->
+
+                                    </div><!-- .project_links -->
+
+                                </div><!-- .text_box -->
+                            </div><!-- .project_box -->
+                        </div><!-- .project_wrap -->
+                    </div><!-- .inner end -->
+                </section><!-- .project end -->
+
+                <section class="side-project">
+
+                </section><!-- .side-project end -->
+
+                <section class="design">
+                </section><!-- .design end -->
+
+                <section id="contact">
+                </section><!-- .contact end -->
+            </div><!-- .bg-gradient end -->
+
+        </div><!-- .portfolio end -->
+</body>
+
+</html>
