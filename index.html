@@ -15,7 +15,7 @@
             const $header = $('.sticky-header');
             const $mainVisual = $('.main-visual');
 
-            // 헤더가 fixed 상태가 될 기준 = main-visual 끝
+            //헤더가 fixed 상태가 될 기준 = main-visual 끝
             const stickyOffset = $mainVisual.offset().top + $mainVisual.outerHeight() - $header.outerHeight();
 
             $(window).on('scroll', function () {
@@ -31,22 +31,22 @@
         import * as THREE from "https://cdn.skypack.dev/three@0.133.1/build/three.module";
         import { OrbitControls } from 'https://cdn.skypack.dev/three@0.133.1/examples/jsm/controls/OrbitControls';
 
-        // DOM
+        //DOM
         const containerEl = document.querySelector('.cloud-text');
 
-        // Settings
+        //Settings
         const fontName = 'Verdana';
         const textureFontSize = 60; // 첫 번째 줄 기준
         const fontScaleFactor = 0.05;
 
-        // Scene globals
+        //Scene globals
         let scene, camera, renderer, textCanvas, textCtx, particleGeometry, particleMaterial, instancedMesh, dummy, clock;
 
         // 텍스트
         let lines = ["Welcome to my sky", "eeezuu Portfolio"];
         let fontSizes = [textureFontSize, textureFontSize * 0.6]; // 두 번째 줄 작게
 
-        // Coordinates / particles
+        //Coordinates / particles
         let textureCoordinates = [];
         let particles = [];
         let stringBox = { wTexture: 500, wScene: 0, hTexture: 100, hScene: 0 };
@@ -123,7 +123,7 @@
 
         // ------------------
         function sampleCoordinates() {
-            // 캔버스 크기 자동 계산
+            //캔버스 크기 자동 계산
             textCtx.font = `100 ${textureFontSize}px ${fontName}`;
             const metrics = textCtx.measureText(lines[0]);
             const width = Math.max(metrics.width, 200);
@@ -249,10 +249,10 @@
             $window.on('scroll', function () {
                 const scrollTop = $window.scrollTop();
 
-                // 메인비주얼 구간 내에서만 효과 적용
+                //메인비주얼 구간 내에서만 효과 적용
                 if (scrollTop <= mainVisualHeight) {
-                    const progress = scrollTop / mainVisualHeight; // 0 ~ 1 비율
-                    const scale = 1 + progress * 0.3; // 스크롤할수록 1 → 1.3배 확대
+                    const progress = scrollTop / mainVisualHeight; //0 ~ 1 비율
+                    const scale = 1 + progress * 0.3; //스크롤할수록 1 → 1.3배 확대
                     $bgImage.css('transform', `scale(${scale})`);
                 }
             });

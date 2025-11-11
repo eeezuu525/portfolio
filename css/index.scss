@@ -42,7 +42,7 @@ html {
                 font-weight: bold;
                 color: #ffffff;
                 text-decoration: none;
-                text-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, 0.3); // 2px, 4px 그림자
+                text-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, 0.3); //2px, 4px 그림자
                 transition: color 0.3s ease;
 
                 &:hover {
@@ -62,9 +62,9 @@ html {
                 li {
                     a {
                         font-size: 1.8rem; // 18px
-                        letter-spacing: 0.1rem; // 자간 1px
+                        letter-spacing: 0.1rem; //자간 1px
                         color: #ffffff;
-                        text-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, 0.3); // 그림자
+                        text-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, 0.3);
                         text-decoration: none;
                         transition: color 0.3s ease;
 
@@ -185,7 +185,7 @@ html {
                 .info {
 
                     display: flex;
-                    flex-wrap: wrap; // 혹시 넘칠 경우 줄바꿈되게
+                    flex-wrap: wrap; 
                     gap: 8rem;
                     margin-bottom: 5rem;
 
@@ -195,7 +195,7 @@ html {
                     }
 
                     .value {
-                        font-size: 2rem; // 20px
+                        font-size: 2rem; 
 
                     }
 
@@ -255,13 +255,13 @@ html {
 
                             .skill_desc {
                                 position: absolute;
-                                top: 100%; // 아이콘 바로 아래
-                                margin-top: 0.5rem; // 아이콘과의 간격
+                                top: 100%; //아이콘 바로 아래
+                                margin-top: 0.5rem; //아이콘과의 간격
                                 background: #333;
                                 color: #fff;
                                 padding: 0.5rem 1rem;
                                 border-radius: 25px;
-                                font-size: 1.6rem; // rem 단위
+                                font-size: 1.6rem;
                                 white-space: nowrap;
                                 opacity: 0;
                                 pointer-events: none;
@@ -288,7 +288,7 @@ html {
                                 .skill_desc {
                                     opacity: 1;
                                     pointer-events: auto;
-                                    margin-top: 1rem; // 살짝 내려오는 애니메이션 느낌
+                                    margin-top: 1rem; //살짝 내려오는 애니메이션 느낌
                                 }
 
 
@@ -309,8 +309,8 @@ html {
     position: relative;
 
     .bottom {
-        position: absolute; // absolute로 부모 기준 위치 고정
-        top: -220px; // 부모(.about_me) 하단에 붙임
+        position: absolute; //absolute로 부모 기준 위치 고정
+        top: -220px; //부모(.about_me) 하단에 붙임
         left: 0;
         width: 100%;
         height: 220px;
@@ -372,15 +372,15 @@ $sky-gradient: linear-gradient(181deg,
     );
 
 .bg-gradient {
-    height: 500vh; // 최소 한 화면 높이
+    height: 500vh; //최소 한 화면 높이
     background: $sky-gradient;
     /* background-attachment: fixed; */
-    // 하늘이 고정된 듯한 느낌
+    //하늘이 고정된 듯한 느낌
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
 
-    // 선택: 색 전환을 부드럽게 하고 싶다면
+    //색 전환을 부드럽게
     transition: background 1s ease-in-out;
 
     .vision {
