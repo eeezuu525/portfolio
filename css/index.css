@@ -390,8 +390,8 @@ html {
 .bg-gradient {
   position: relative;
   width: 100%;
-  height: 650vh;
-  background: linear-gradient(181deg, #EFD9EA 2%, #C7E3F9 27%, #B0D3F4 43%, #C9B3D7 58%, #F0B395 65%, #685595 80%, #11133A 100%);
+  /* height: 650vh;  */
+  background: linear-gradient(181deg, #EFD9EA 2%, #C7E3F9 24%, #B0D3F4 40%, #C9B3D7 55%, #F0B395 62%, #685595 73%, #11133A 100%);
   /* background-attachment: fixed; */
   background-size: cover;
   background-repeat: no-repeat;
@@ -732,7 +732,7 @@ html {
 }
 .bg-gradient #side-project {
   margin-top: 20rem;
-  height: 60vh;
+  /* height: 60vh; */
 }
 .bg-gradient #side-project .inner {
   max-width: 1400px;
@@ -745,6 +745,34 @@ html {
   font-weight: 800;
   font-size: 12rem;
   color: #fff;
+}
+.bg-gradient #side-project .inner .list {
+  margin-top: 8rem;
+  width: 100%;
+  display: flex;
+}
+.bg-gradient #side-project .inner .list .item {
+  width: 500px;
+  height: 500px;
+  animation: float 5s ease-in-out infinite;
+}
+.bg-gradient #side-project .inner .list .item img {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  /* 위로 떠오르는 정도 */
+  100% {
+    transform: translateY(0);
+  }
 }
 .bg-gradient #design {
   margin-top: 20rem;
@@ -764,6 +792,7 @@ html {
 }
 .bg-gradient #contact {
   margin-top: 20rem;
+  height: 80vh;
 }
 .bg-gradient #contact .inner {
   max-width: 1400px;
