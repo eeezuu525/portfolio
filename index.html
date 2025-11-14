@@ -48,6 +48,7 @@
             }
         });
 
+            //.about_me
         window.addEventListener("scroll", () => {
             const aboutMe = document.querySelector(".about_me");
             const bottomWrapper = document.querySelector(".bottom-wrapper");
@@ -58,7 +59,7 @@
             const bottomTop = bottomWrapper.getBoundingClientRect().top;
 
             // bottom-wrapper가 화면 상단에서 100px 지점에 닿으면 sticky 해제
-            if (bottomTop <= 100) {
+            if (bottomTop <= 200) {
                 aboutMe.classList.add("unstuck");
             } else {
                 aboutMe.classList.remove("unstuck");
@@ -167,7 +168,7 @@ void main() {
   uv.x *= iResolution.x / iResolution.y;
 
   // --- 구름 이동 속도 조절 ---
-  uv += vec2(iTime*0.01, iTime*0.02);
+  uv += vec2(iTime*0.015, iTime*0.03);
 
   // --- 구름 스케일 조절 ---
   float n = fbm3(uv * 3.0, iTime);   // 작고 디테일한 구름
@@ -480,7 +481,6 @@ void main() {
             function animateOnScroll() {
                 const scrollTop = $window.scrollTop();
                 const winH = $window.height();
-
                 const titleTop = $title.offset().top;
                 const titleHeight = $title.outerHeight();
                 const titleCenter = titleTop - winH / 2 + titleHeight / 2;
@@ -1159,7 +1159,7 @@ void main() {
 
             <section id="design">
                 <div class="inner">
-                     <h2 class="title_design">SDESIGN</h2>
+                     <h2 class="title_design">DESIGN</h2>
                 </div>
             </section><!-- .design end -->
 
