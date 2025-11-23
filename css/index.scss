@@ -1,0 +1,1521 @@
+@charset "utf-8";
+@import url("reset.css");
+
+@font-face {
+    font-family: 'NexonMaplestory';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@2.1/MaplestoryOTFLight.woff') format('woff');
+    font-weight: 300;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'NexonMaplestory';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-04@2.1/MaplestoryOTFBold.woff') format('woff');
+    font-weight: 700;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'TMoneyDungunbaram';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/TmoneyRoundWindRegular.woff') format('woff');
+    font-weight: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'TMoneyDungunbaram';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_20-07@1.0/TmoneyRoundWindExtraBold.woff') format('woff');
+    font-weight: 800;
+    font-display: swap;
+}
+
+
+body {
+    cursor: url('../img/s.png') 24 24, auto;
+    /* 이미지 48x48px, 클릭 중심점 중앙 */
+}
+
+html {
+    font-size: 10px;
+}
+
+.sticky-header {
+    position: absolute; // 초기엔 main-visual 안에 있음
+    bottom: 0; // 화면 하단에 붙음
+    left: 0;
+    width: 100%;
+    height: 8rem;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    background-color: transparent; // 초기 투명
+
+    &.fixed {
+        position: fixed;
+        top: 0;
+        bottom: auto;
+        backdrop-filter: blur(8px);
+        background-color: rgba(255, 255, 255, 0.063);
+        transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+    }
+
+    .inner {
+        max-width: 160rem; // 1600px
+        width: calc(100% - 6rem); // 60px 제외
+        height: 100%;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        // ==============================
+        // Logo
+        // ==============================
+        .logo {
+            a {
+                font-size: 2.4rem; // 24px
+                font-weight: bold;
+                color: #ffffff;
+                text-decoration: none;
+                text-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, 0.3); //2px, 4px 그림자
+                transition: color 0.3s ease;
+
+                &:hover {
+                    color: #ffeedd;
+                }
+            }
+        }
+
+        // ==============================
+        // Navigation
+        // ==============================
+        nav {
+            ul {
+                display: flex;
+                gap: 8rem; // 80px 간격
+
+                li {
+                    a {
+                        font-size: 1.8rem; // 18px
+                        letter-spacing: 0.1rem; //자간 1px
+                        color: #ffffff;
+                        text-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, 0.3);
+                        text-decoration: none;
+                        transition: color 0.3s ease;
+
+                        &:hover {
+                            color: #ffeedd;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+.main-visual {
+    position: relative;
+    width: 100%;
+    height: 100vh; // 1080px를 rem 단위로 변환
+    overflow: hidden;
+
+    &.fixed {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        z-index: 2;
+    }
+
+    &.end {
+        position: relative;
+        z-index: 1;
+    }
+
+    .bg-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(1);
+            transition: transform 0.1s ease-out;
+            /* 프레임 부드럽게 */
+            will-change: transform;
+
+        }
+    }
+
+    .cloud-text {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+
+        opacity: 0;
+        transform: translateY(20px);
+        /* 초기 아래에서 시작 */
+
+        /* 등장 애니메이션 + float 애니메이션 */
+        animation: fadeIn 2s ease-out forwards, float 5s ease-in-out 4s infinite alternate;
+
+    }
+
+    @keyframes fadeIn {
+        0% {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* 반복적으로 떠있는 느낌 */
+    @keyframes float {
+        0% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
+
+        100% {
+            transform: translateY(0);
+        }
+    }
+}
+
+
+
+#about_me {
+    width: 100%;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    /* position: relative; */
+    background: #FFF8D6;
+    background: linear-gradient(181deg, rgba(255, 248, 214, 1) 0%, rgba(243, 227, 156, 1) 10%, rgba(251, 207, 175, 1) 38%, rgba(243, 207, 225, 1) 59%);
+
+    &.unstuck {
+        position: static;
+        /* 원래 위치로 돌아가지 않고 그 순간부터 스크롤 적용 */
+    }
+
+    h4.title {
+        font-weight: 300;
+        font-family: 'TMoneyDungunbaram';
+        font-size: 2.4rem;
+        color: #333;
+        margin-bottom: 2.5rem;
+    }
+
+    .inner {
+        max-width: 128rem;
+        width: calc(100% - 4rem);
+        margin: 0 auto;
+
+
+
+        .title_about_me {
+            font-family: 'TMoneyDungunbaram';
+            font-weight: 800;
+            padding-top: 12rem;
+            font-size: 4.8rem;
+            color: #3c3c3c;
+            margin-bottom: 10rem;
+            text-align: center;
+        }
+
+        .about_list {
+            display: flex;
+
+            .about {
+                width: 240px;
+
+                .profile {
+                    width: 100%;
+                    height: 338px;
+                    border-radius: 2.5rem;
+                    box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.432); // 그림자
+                    transform: translateY(0px); // 초기 위치
+                    animation: float 5s ease-in-out infinite; // 떠 있는 애니메이션
+
+
+                    img {
+                        width: 100%;
+                        height: 100%;
+                        display: block;
+                        border-radius: 2.5rem;
+                        object-fit: cover;
+                    }
+                }
+
+                @keyframes float {
+                    0% {
+                        box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.6);
+                        transform: translateY(0px);
+                    }
+
+                    50% {
+                        box-shadow: 0 25px 15px 0 rgba(0, 0, 0, 0.2);
+                        transform: translateY(-12px);
+                    }
+
+                    100% {
+                        box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.6);
+                        transform: translateY(0px);
+                    }
+                }
+
+                .about_btn {
+                    margin-top: 5rem;
+                    font-family: "TMoneyDungunbaram";
+                    font-size: 2.4rem;
+                    text-align: center;
+                    padding: 14px 0;
+                    border-radius: 1rem;
+                    color: #fff;
+                    background-color: #0f0101;
+                    box-shadow: 0 3px 10px 0 rgba(26, 26, 26, 0.432); // 그림자
+
+                    a {
+                        display: block;
+                    }
+                }
+            }
+
+
+            .about_box {
+                width: calc(100% - 30.3rem);
+                margin-left: 6rem;
+
+                .info {
+                    display: flex;
+                    /* flex-wrap: wrap; */
+                    justify-content: space-between;
+
+                    margin-bottom: 3.2rem;
+
+                    .label {
+                        font-weight: 300;
+                        font-family: 'TMoneyDungunbaram';
+                        width: 70px;
+                        font-size: 1.8rem; // 18px
+                    }
+
+                    .value {
+                        font-weight: 300;
+                        font-family: 'TMoneyDungunbaram';
+                        font-size: 2rem;
+
+                    }
+
+                    .profile_info {
+                        .profile_list {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 1.5rem;
+
+                            li {
+                                display: flex;
+                                gap: 1.8rem;
+
+                            }
+                        }
+                    }
+
+                    .education {
+                        .education_list {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 1.5rem;
+
+                            li {
+                                font-weight: 300;
+                                font-family: 'TMoneyDungunbaram';
+                                display: flex;
+                                flex-wrap: wrap;
+                                gap: 1.8rem;
+                                font-size: 2rem;
+
+                                .year {
+                                    font-weight: 300;
+                                    font-family: 'TMoneyDungunbaram';
+                                    font-size: 1.8rem;
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+                .Awards {
+                   margin-bottom: 3.2rem;
+                    .education_list {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 1.5rem;
+
+                        li {
+                            font-size: 2rem;
+                            font-weight: 300;
+                            font-family: 'TMoneyDungunbaram';
+                        }
+                    }
+                }
+
+                .skill {
+                    .skill_icons {
+                        display: flex;
+                        justify-content: space-between;
+
+                        .skill_item {
+                            position: relative;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            cursor: pointer;
+
+                            img {
+                                width: 48px;
+                                height: 48px;
+                                object-fit: cover;
+                                transition: transform 0.3s ease;
+                            }
+
+                            .skill_desc {
+                                font-family: 'NexonMaplestory';
+                                position: absolute;
+                                top: 100%; //아이콘 바로 아래
+                                margin-top: 0.5rem; //아이콘과의 간격
+                                background: #333;
+                                color: #fff;
+                                padding: 0.5rem 1rem;
+                                border-radius: 25px;
+                                font-size: 1.6rem;
+                                white-space: nowrap;
+                                opacity: 0;
+                                pointer-events: none;
+                                transition: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+                                &::before {
+                                    content: "";
+                                    position: absolute;
+                                    width: 1rem;
+                                    height: 1rem;
+                                    background: #333;
+                                    top: -0.4rem; // 툴팁 위쪽 삼각형
+                                    left: 50%;
+                                    transform: translateX(-50%) rotate(45deg);
+                                }
+                            }
+
+
+                            &:hover {
+                                img {
+                                    transform: scale(1.1);
+                                }
+
+                                .skill_desc {
+                                    opacity: 1;
+                                    pointer-events: auto;
+                                    margin-top: 1rem; //살짝 내려오는 애니메이션 느낌
+                                }
+
+                            }
+
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+}
+
+.bottom-wrapper {
+    position: relative;
+
+
+    .bottom {
+        position: absolute; //absolute로 부모 기준 위치 고정
+        top: -29rem; //부모(.about_me) 하단에 붙임
+        left: 0;
+        width: 100%;
+        height: 29rem;
+        overflow: hidden;
+
+
+
+        div {
+            position: absolute;
+            background-position-y: bottom;
+            background-repeat: repeat-x;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            /* background-size: cover; */
+        }
+
+        .bg1 {
+            background-image: url("../img/sec_clouds1.png");
+            z-index: 1;
+            transform: translateY(-15px);
+            animation: move 15s infinite linear reverse;
+        }
+
+        .bg2 {
+            background-image: url("../img/sec_clouds2.png");
+            z-index: 2;
+            transform: translateY(15px);
+            animation: move 15s infinite linear;
+        }
+
+        .bg3 {
+            background-image: url("../img/sec_clouds3.png");
+            z-index: 3;
+            animation: move 15s infinite linear reverse;
+        }
+    }
+
+    @keyframes move {
+        from {
+            background-position-x: 0;
+        }
+
+        to {
+            background-position-x: 500px;
+        }
+    }
+}
+
+
+
+
+
+$sky-gradient: linear-gradient(181deg,
+        #EFD9EA 2%, // 연분홍
+        #C7E3F9 18%, // 연하늘
+        #B0D3F4 39%, // 중간 하늘색
+        #C9B3D7 50%, // 연보라
+        #F0B395 60%, // 살짝 톤 다운한 노을색
+        #685595 76%, // 딥 퍼플
+        #11133A 100% // 밤하늘
+    );
+
+
+.bg-gradient {
+    position: relative;
+    width: 100%;
+
+    /* height: 650vh;  */
+    //최소 한 화면 높이
+    /* height: 650vh;  */
+    //최소 한 화면 높이
+    background: $sky-gradient;
+    /* background-attachment: fixed; */
+    //하늘이 고정된 듯한 느낌
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    //색 전환을 부드럽게
+    transition: background 1s ease-in-out;
+
+    .vision {
+        max-width: 1400px;
+
+        margin-bottom: 14rem;
+        text-align: center;
+        font-size: 3.2rem;
+        line-height: 1.6;
+        /* 행간: 1.4배 정도로 여유 있게 */
+        letter-spacing: 0.02em;
+        /* 자간: 글자 사이 약간 띄움 */
+
+        font-family: 'NexonMaplestory';
+
+        h2 {
+            margin: 0 auto;
+            margin-bottom: 2rem;
+            width: 48px;
+
+            img {
+                width: 100%;
+            }
+        }
+
+        .fadetext {
+
+            >span {
+                color: #ffffff;
+
+                display: block; // 문장 단위 줄바꿈
+                white-space: nowrap; // 문장 내부 줄바꿈 방지 (세로 정렬 방지 핵심)
+
+                >span {
+                    display: inline-block; //글자 단위 애니메이션 적용
+                    color: #ffffffdc;
+                    opacity: 0.3; //처음에는 흐릿하게
+                    transform: translateY(20px);
+                    animation: fadeInUp 0.5s forwards ease-out;
+                    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+
+                }
+
+            }
+
+
+
+            /* &.active>span>span {
+                animation: fadeInUp 0.5s forwards ease-out;
+            } */
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0.3;
+                /* 시작은 흐릿하게 */
+                transform: translateY(20px);
+
+            }
+
+            to {
+                opacity: 1;
+                /* 완전히 보이도록 */
+                transform: translateY(0);
+            }
+        }
+
+
+    }
+
+
+    #project {
+        padding-top: 22rem;
+        /* margin-top: 18rem; */
+        position: relative;
+        display: block;
+        z-index: 3;
+
+        .inner {
+            max-width: 1400px;
+            width: calc(100% - 30px);
+            margin: 0 auto;
+
+            .title_project {
+                text-align: center;
+                font-family: 'TMoneyDungunbaram';
+                font-weight: 800;
+                font-size: 16rem;
+                color: #fff;
+                opacity: 0;
+                /*  transform: translateY(40px);
+            transition: all 0.8s ease-out; */
+                transform: translateY(50px);
+                transition: transform 4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.8s ease-out;
+                will-change: transform, opacity;
+                text-align: center;
+
+                text-shadow:
+                    2px 2px 4px rgba(0, 0, 0, 0.6), // 기본 어두운 그림자
+                    0 0 6px rgba(0, 0, 50, 0.4); // 약간 블루빛 오라 느낌
+
+                /*  &.in-view {
+                opacity: 1;
+                transform: translateY(0);
+            } */
+
+            }
+
+            .project_wrap {
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 10rem;
+                margin-top: 18rem;
+
+
+                @keyframes border-shimmer {
+                    0% {
+                        background-position: 0 0;
+                    }
+
+                    50% {
+                        background-position: 100% 0;
+                    }
+
+                    100% {
+                        background-position: 0 0;
+                    }
+                }
+
+                .project_box {
+
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                    gap: 5rem;
+
+                    /* scroll animation */
+                    opacity: 0;
+                    /*  transform: translate3d(0, 100px, 0); */
+                    //좀 더 아래에서 올라오는 느낌
+                    transform: translateY(20px);
+                    transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.9s ease-out;
+                    will-change: transform, opacity;
+
+                    background: linear-gradient(135deg,
+                            rgba(70, 70, 70, 0.2),
+                            rgba(120, 180, 220, 0.15));
+                    backdrop-filter: blur(6px);
+                    border: 2.5px solid rgba(255, 255, 255, 0.25);
+                    border-radius: 3rem;
+                    padding: 2rem;
+
+
+
+
+
+                    /*  background: linear-gradient(rgba(199, 227, 249, 0.5), // #C7E3F9 반투명
+                            rgba(176, 211, 244, 0.5) // #B0D3F4 반투명
+                        );
+                    backdrop-filter: blur(6px);
+ */
+
+
+
+
+                    /*  background: linear-gradient(rgba(173, 216, 230, 0.5), rgba(255, 255, 255, 0.5));
+                    backdrop-filter: blur(5px);
+ */
+                    /* 반투명 배경 */
+                    /*     background-color: rgba(255, 255, 255, 0.307);
+                    backdrop-filter: blur(5px); */
+
+                    border-radius: 3rem;
+
+
+                    /* 카드 테두리 및 빛 효과 */
+                    /*   border: 3px solid rgb(255, 255, 255); */
+                    padding: 2rem;
+
+                    &:hover::before {
+
+                        box-shadow: 0 0 15px 3px rgba(255, 255, 255, 0.6);
+                    }
+
+                    /* // 외부 글로우
+                    &::before {
+                        content: "";
+                        position: absolute;
+                        inset: 0; // 박스 전체 덮기
+                        border-radius: inherit;
+                        pointer-events: none;
+                        opacity: 0;
+                        background: linear-gradient(90deg, transparent, #fff, transparent);
+                        background-size: 200% 100%;
+                        -webkit-mask: linear-gradient(#fff 0 0); // 테두리만 보이게
+                        mask: linear-gradient(#fff 0 0);
+                        z-index: 2;
+                        transition: opacity 0.3s ease;
+                    }
+ */
+                    // 내부 테두리 하이라이트
+                    /* &::after {
+                        content: "";
+                        position: absolute;
+                        inset: -4px; // 테두리 주변만 살짝 확대
+                        border-radius: inherit;
+                        pointer-events: none;
+                        opacity: 0;
+                        background: linear-gradient(90deg, transparent, #fff, transparent);
+                        background-size: 200% 100%;
+                        z-index: 2;
+                        transition: opacity 0.3s;
+                        mask:
+                            linear-gradient(#fff 0 0) content-box; // 내부는 투명하게
+                        -webkit-mask:
+                            linear-gradient(#fff 0 0) content-box;
+                        padding: 2px; // 테두리 두께
+                    } */
+
+                    &.in-view {
+                        opacity: 1;
+                        transform: translateY(0);
+                        /*  transform: translate3d(0, 0, 0); */
+                    }
+
+                    .image {
+                        width: 65rem;
+                        height: 55.3rem;
+
+
+                        img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                        }
+                    }
+
+
+                    .text_box {
+                        padding: 5rem 2.5rem;
+
+
+                        .project_header {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 1.8rem;
+                            margin-bottom: 3.5rem;
+
+                            h3 {
+                                font-family: 'TMoneyDungunbaram';
+                                font-weight: 600;
+                                font-size: 3.4rem;
+
+                            }
+
+                            span {
+                                font-family: 'TMoneyDungunbaram';
+                                font-size: 1.5rem;
+                                font-weight: 300;
+                            }
+                        }
+
+                        .project_info {
+                            display: flex;
+                            gap: 3rem;
+                            margin-bottom: 5rem;
+
+                            .info_label {
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: space-between;
+
+
+                                li {
+                                    font-family: 'TMoneyDungunbaram';
+                                    font-size: 2rem;
+                                }
+                            }
+
+                            .info_value {
+                                display: flex;
+                                flex-direction: column;
+                                gap: 1.7rem;
+                                align-items: start;
+
+                                li {
+                                    font-family: 'TMoneyDungunbaram';
+                                    font-size: 1.8rem;
+                                }
+                            }
+                        }
+
+                        .project_links {
+                            display: flex;
+                            /*  justify-content: space-between; */
+                            align-items: center;
+                            gap: 1.4rem;
+                            height: 6.3rem;
+
+                            .link_qr {
+                                position: relative;
+                                display: inline-block;
+                                cursor: pointer;
+                                width: 50px;
+                                height: 50px;
+                                background-color: rgba(255, 255, 255, 0.903);
+                                align-content: center;
+                                text-align: center;
+                                border-radius: 8px;
+                                /*   display: none; */
+
+
+                                .qr_icon {
+                                    width: 40px;
+                                    height: 40px;
+
+                                    transition: transform 0.3s ease;
+
+                                    &:hover {
+                                        transform: scale(1.1);
+
+                                    }
+                                }
+
+                                .qr_popup {
+                                    position: fixed;
+                                    inset: 0;
+                                    /* width: 100vw; */
+                                    /* height: 100vh; */
+                                    background: rgba(0, 0, 0, 0.6);
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    opacity: 0;
+                                    visibility: hidden;
+                                    transition: all 0.4s ease;
+                                    z-index: 999;
+
+
+
+                                    .qr_popup_inner {
+                                        position: relative;
+                                        background: #fff;
+                                        padding: 2rem;
+                                        border-radius: 1.5rem;
+                                        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+                                        transform: scale(0.8);
+                                        transition: transform 0.4s ease;
+                                        display: flex;
+                                        flex-direction: column;
+                                        align-items: center;
+                                        gap: 1.5rem;
+
+                                        img {
+                                            width: 300px;
+                                            height: 300px;
+                                            object-fit: cover;
+                                            border-radius: 1rem;
+                                        }
+
+                                        .close_btn {
+                                            position: absolute;
+                                            top: -15px;
+                                            right: -15px;
+                                            width: 40px;
+                                            height: 40px;
+                                            border-radius: 50%;
+                                            border: none;
+                                            background: #ffffff;
+                                            cursor: pointer;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            font-size: 2rem;
+                                            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+                                            transition: all 0.2s ease;
+
+                                            &:hover {
+                                                transform: rotate(90deg);
+                                                background: #f1f1f1;
+                                            }
+
+                                            img {
+                                                width: 18px;
+                                                height: 18px;
+                                            }
+                                        }
+                                    }
+
+                                    /* JS에서 .qr_popup에 active 붙으면 나타나도록 */
+                                    &.active {
+                                        opacity: 1;
+                                        visibility: visible;
+
+                                        .qr_popup_inner {
+                                            transform: scale(1);
+                                        }
+                                    }
+                                }
+                            }
+
+                            a.btn.link_web {
+                                width: 18rem;
+                                height: 6.9rem;
+                                background: url('../icon/Vector..svg') no-repeat center / cover;
+
+                                /* padding: 15px 30px; */
+                            }
+
+                            a.btn {
+                                width: 14rem;
+                                height: 5.3rem;
+                                /* flex: 1;  */
+                                // 버튼이 균등하게
+                                position: relative;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-family: 'TMoneyDungunbaram';
+                                font-size: 2.2rem;
+                                background: url('../icon/Vector22.svg') no-repeat center / cover;
+                                border-radius: 1.5rem;
+                                /* padding: 1.6rem 2rem; */
+                                text-decoration: none;
+                                color: #000; // 필요에 따라 조정
+                                transition: all 0.2s ease;
+                                overflow: visible;
+
+                                &:hover {}
+
+                                span {
+                                    margin-top: 0.8rem;
+                                }
+
+                                /* hover 시 구름 배경 */
+                                &.link_web:hover {
+                                    color: #fff;
+                                    height: 6.9rem;
+                                    background-color: transparent;
+                                    background: url('../icon/h0ver.svg') no-repeat center / cover;
+
+                                }
+
+                                &.link_process:hover {
+                                    background-color: transparent;
+
+                                    background: url('../icon/hover.2.svg') no-repeat center / cover;
+                                }
+
+                                &.link_figma:hover {
+                                    background-color: transparent;
+
+                                    background: url('../icon/hover.2.svg') no-repeat center / cover;
+                                }
+
+                                /* QR 버튼 제외 */
+
+                            }
+
+
+
+
+                        }
+                    }
+                }
+
+            }
+
+        }
+    }
+
+
+    #side-project {
+        z-index: 1;
+        margin-top: 30rem;
+        /* height: 60vh; */
+
+        .inner {
+            max-width: 1400px;
+            width: calc(100% - 30px);
+            margin: 0 auto;
+
+            .title_side-project {
+
+                opacity: 0;
+                transform: translateY(60px);
+                transition: all 0.8s ease-out;
+
+
+                text-align: center;
+                font-family: 'TMoneyDungunbaram';
+                font-weight: 800;
+                font-size: 10rem;
+                color: #fff;
+                text-shadow:
+                    2px 2px 4px rgba(0, 0, 0, 0.6), // 기본 어두운 그림자
+                    0 0 6px rgba(0, 0, 50, 0.4); // 약간 블루빛 오라 느낌
+
+                &.in-view {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+
+
+            }
+
+            .list {
+                margin-top: 18rem;
+                display: flex;
+                gap: 2rem;
+                height: 500px;
+
+                .side-box {
+                    width: 100%;
+                    flex: 0.8; //클릭 전 작은 폭
+                    overflow: hidden;
+                    transition: flex 0.5s ease;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+
+                    align-items: flex-start;
+                    gap: 2.5rem;
+                    border: 2px solid rgb(255, 255, 255);
+                    padding: 2rem 0;
+                    background-color: rgba(255, 255, 255, 0.18);
+                    backdrop-filter: blur(8px);
+                    border: 1px solid rgba(255, 255, 255, 0.25);
+                    /* background-color: rgba(60, 50, 70, 0.35);
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    color: #fff; */
+                    border-radius: 3rem;
+
+                    .project_header {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 1.5rem;
+                        margin-bottom: 2rem;
+                        margin-left: 1.5rem;
+
+                        h3 {
+                            font-family: 'TMoneyDungunbaram';
+                            font-size: 2.8rem;
+                        }
+
+                        span.main {
+                            font-family: 'TMoneyDungunbaram';
+                            font-size: 1.5rem;
+                            font-weight: 300;
+
+                            display: none;
+
+                        }
+
+                        span.serve {
+                            font-family: 'TMoneyDungunbaram';
+                            font-size: 1.5rem;
+                            font-weight: 300;
+                        }
+
+
+                    }
+
+
+
+                    .item {
+
+                        display: flex;
+                        align-items: center;
+                        gap: 2rem;
+
+                        .image {
+                            width: 40rem;
+                            overflow: hidden;
+
+                            img {
+                                width: 100%;
+                                height: auto;
+                                object-fit: cover;
+                                transition: width 0.5s ease;
+
+                            }
+                        }
+
+                        .text_box {
+                            display: none;
+                            margin-left: 1rem;
+                            transition: opacity 0.5s ease;
+
+
+
+                            .project_info {
+                                display: flex;
+                                gap: 3rem;
+                                margin-bottom: 5rem;
+
+                                .info_label {
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 1.7rem;
+
+
+                                    li {
+                                        font-family: 'TMoneyDungunbaram';
+                                        font-size: 2rem;
+                                    }
+                                }
+
+                                .info_value {
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 1.7rem;
+                                    align-items: start;
+
+                                    li {
+                                        font-family: 'TMoneyDungunbaram';
+                                        font-size: 1.8rem;
+                                    }
+                                }
+                            }
+
+                            .project_links {
+                                display: flex;
+                                /*  justify-content: space-between; */
+                                align-items: center;
+                                gap: 1.4rem;
+                                height: 6.3rem;
+
+                                a.btn.link_web {
+                                    background: url('../icon/h0ver.svg') no-repeat center / cover;
+                                    color: #fff;
+
+                                    /* padding: 15px 30px; */
+                                }
+
+                                a.btn {
+                                    width: 14rem;
+                                    height: 5.3rem;
+                                    /* flex: 1;  */
+                                    // 버튼이 균등하게
+                                    position: relative;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    font-family: 'TMoneyDungunbaram';
+                                    font-size: 2.2rem;
+                                    background: url('../icon/h0ver.svg') no-repeat center / cover;
+                                    color: #fff;
+                                    border-radius: 1.5rem;
+                                    /* padding: 1.6rem 2rem; */
+                                    text-decoration: none;
+
+                                    transition: all 0.4s ease;
+                                    overflow: visible;
+
+                                    &:hover {}
+
+                                    span {
+                                        margin-top: 0.8rem;
+                                    }
+
+                                    /* hover 시 구름 배경 */
+                                    &.link_web:hover {
+                                        color: #000;
+                                        background-color: transparent;
+                                        background: url('../icon/Vector..svg') no-repeat center / cover;
+
+
+                                    }
+
+                                    &.link_process:hover {
+                                        background-color: transparent;
+
+                                    }
+
+                                    &.link_figma:hover {
+                                        background-color: transparent;
+
+                                    }
+
+                                    /* QR 버튼 제외 */
+
+                                }
+
+
+
+
+                            }
+                        }
+
+                    }
+
+
+                    &.active {
+
+                        padding: 2rem;
+                        flex: 5; // 클릭 후 폭 확장
+
+                        .project_header {
+                            margin-left: 3rem;
+
+                            h3 {
+                                font-size: 3.8rem;
+                            }
+
+                            span.main {
+
+
+                                display: block;
+
+                            }
+
+                            span.serve {
+                                display: none;
+                            }
+
+                        }
+
+                        .image {
+                            width: 50%;
+                            margin-left: 0;
+                        }
+
+                        .text_box {
+                            display: block; // 텍스트 나타남
+                        }
+                    }
+
+
+
+                }
+
+
+
+            }
+
+        }
+
+    }
+
+    #design {
+        margin-top: 20rem;
+        height: 60vh;
+
+
+        .inner {
+            max-width: 1400px;
+            width: calc(100% - 30px);
+            margin: 0 auto;
+
+            .title_design {
+                opacity: 0;
+                transform: translateY(60px);
+                transition: all 0.8s ease-out;
+
+                text-align: center;
+                font-family: 'TMoneyDungunbaram';
+                font-weight: 800;
+                font-size: 10rem;
+                color: #fff;
+                margin-bottom: 12rem;
+
+                &.in-view {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .list {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+
+                .item {
+                    width: 20%;
+                    animation: floating 3s ease-in-out infinite;
+                    overflow: hidden;
+                    border-radius: 30px;
+                    position: relative;
+
+                    img {
+                        width: 100%;
+                        border-radius: 30px;
+                        object-fit: cover;
+                        transition: transform 0.5s ease;
+                        filter: brightness(0.7);
+                    }
+
+                    &:hover img {
+                        transform: scale(1.06); // 이미지만 확대
+                        filter: brightness(1);
+                    }
+                }
+            }
+
+
+
+        }
+
+    }
+
+    @keyframes floating {
+        0% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
+
+        100% {
+            transform: translateY(0);
+        }
+    }
+
+    #contact {
+        margin-top: 30rem;
+        padding-bottom: 18rem;
+
+
+
+
+        .inner {
+            max-width: 1400px;
+            width: calc(100% - 30px);
+            margin: 0 auto;
+
+            .title_contact {
+                opacity: 0;
+                transform: translateY(60px);
+                transition: all 0.8s ease-out;
+
+                text-align: center;
+                font-family: 'TMoneyDungunbaram';
+                font-weight: 800;
+                font-size: 8rem;
+                color: #fff;
+                margin-bottom: 12rem;
+
+                &.in-view {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .contact_wrap {
+                color: #fff;
+                margin: 0 auto;
+
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+
+                p {
+                    margin-bottom: 5rem;
+                    font-size: 2.6rem;
+                }
+
+                .main {
+
+
+                    display: flex;
+                    align-items: center;
+                    gap: 10rem;
+
+                    img {}
+
+                    .call {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 2rem;
+
+                        .phone {
+                            display: flex;
+                            gap: 1.5rem;
+                        }
+
+                        .e-mail {
+                            display: flex;
+                            gap: 1.5rem;
+                        }
+
+
+                        span {
+                            font-size: 20px;
+                        }
+
+                        .btn_wrap {
+                            margin-top: 2rem;
+                            display: flex;
+                            justify-content: space-between;
+
+                            a {
+                                font-size: 20px;
+                            }
+
+                        }
+                    }
+
+
+                }
+            }
+
+        }
+
+    }
+
+}
+
+.cloud_layer {
+    margin: 0;
+    overflow: hidden;
+    width: 100%;
+    height: 240vh;
+    /* 전체 화면 높이 */
+    position: absolute;
+    top: 60vh;
+    left: 0;
+
+    #webglCanvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        -o-object-fit: cover;
+        object-fit: cover;
+        background: transparent;
+        mask-size: 500px;
+        /* -webkit-mask-size: 100px; */
+        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 10%, rgba(0, 0, 0, 0) 100%);
+
+        #webglCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            -o-object-fit: cover;
+            object-fit: cover;
+            background: transparent;
+            mask-size: 500px;
+            /* -webkit-mask-size: 100px; */
+            mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 10%, rgba(0, 0, 0, 0) 100%);
+
+        }
+    }
+}
+
+
+.stars_layer {
+    transition: opacity 1s ease-out;
+    position: absolute;
+    width: 100%;
+    height: 160vh;
+    bottom: 10vh;
+    left: 0;
+    overflow: hidden;
+
+    .stars_layer {
+        transition: opacity 1s ease-out;
+        position: absolute;
+        width: 100%;
+        height: 160vh;
+        bottom: 10vh;
+        left: 0;
+        overflow: hidden;
+
+        #aestheticCanvas {
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+            display: block;
+
+            #aestheticCanvas {
+                object-fit: cover;
+                width: 100%;
+                height: 100%;
+                display: block;
+
+            }
+        }
+    }
+}

@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포트폴리오</title>
+    <link rel="stylesheet" href="css/index.scss">
+    <link rel="stylesheet" href="css/index.css">
+
+
+
+    <script src="lib/gsap.min.js"></script>
+    <script src="lib/jquery-3.7.1.min.js"></script>
+    <script src="lib/ScrollTrigger.min.js"></script>
+
+    <script src="main.js"></script>
+
+
+    <script>
+        $(function () {
+            const $header = $('.sticky-header');
+            const $mainVisual = $('.main-visual');
+
+            //헤더가 fixed 상태가 될 기준 = main-visual 끝
+            const stickyOffset = $mainVisual.offset().top + $mainVisual.outerHeight() - $header.outerHeight();
+
+            $(window).on('scroll', function () {
+                if ($(window).scrollTop() >= stickyOffset) {
+                    $header.addClass('fixed');
+                } else {
+                    $header.removeClass('fixed');
+                }
+            });
+        });
+
+        const $window = $(window);
+        const $bgImage = $('.main-visual .bg-image img');
+        const mainVisualHeight = $('.main-visual').outerHeight();
+
+        $window.on('scroll', function () {
+            const scrollTop = $window.scrollTop();
+
+            //메인비주얼 구간 내에서만 효과 적용
+            if (scrollTop <= mainVisualHeight) {
+                const progress = scrollTop / mainVisualHeight; //0 ~ 1 비율
+                const scale = 1 + progress * 0.3; //스크롤할수록 1 → 1.3배 확대
+                $bgImage.css('transform', `scale(${scale})`);
+            }
+        });
+
+        //.about_me
+        //.about_me
+        window.addEventListener("scroll", () => {
+            const aboutMe = document.querySelector(".about_me");
+            const bottomWrapper = document.querySelector(".bottom-wrapper");
+
+            if (!aboutMe || !bottomWrapper) return;
+
+            // bottom-wrapper의 현재 뷰포트 내 위치
+            const bottomTop = bottomWrapper.getBoundingClientRect().top;
+
+            // bottom-wrapper가 화면 상단에서 100px 지점에 닿으면 sticky 해제
+
+            if (bottomTop <= 200) {
+                aboutMe.classList.add("unstuck");
+            } else {
+                aboutMe.classList.remove("unstuck");
+            }
+
+        });
+
+
+        $(function () {
+            // --- webglCanvas 배경구름효과 ---
+            const canvas = document.getElementById("webglCanvas");
+            const gl = canvas.getContext("webgl2", { alpha: true, premultipliedAlpha: false });
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            gl.viewport(0, 0, canvas.width, canvas.height);
+
+            // --- Vertex shader (fullscreen quad) ---
+            const vertexShaderSource = `#version 300 es
+in vec4 position;
+void main() { gl_Position = position; }
+`;
+
+            // --- Fragment shader ---
+            const fragmentShaderSource = `#version 300 es
+precision highp float;
+
+uniform float iTime;
+uniform vec2 iResolution;
+out vec4 fragColor;
+
+// --- 3D Simplex noise ---
+vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x,289.0);}
+float snoise3(vec3 v){
+  const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+
+  vec3 i = floor(v + dot(v,C.yyy));
+  vec3 x0 = v - i + dot(i,C.xxx);
+
+  vec3 g = step(x0.yzx,x0.xyz);
+  vec3 l = 1.0 - g;
+  vec3 i1 = min(g.xyz, l.zxy);
+  vec3 i2 = max(g.xyz, l.zxy);
+
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + C.yyy;
+  vec3 x3 = x0 - D.yyy;
+
+  i = mod(i,289.0);
+  vec4 p = permute( permute( permute(
+             i.z + vec4(0.0,i1.z,i2.z,1.0))
+           + i.y + vec4(0.0,i1.y,i2.y,1.0))
+           + i.x + vec4(0.0,i1.x,i2.x,1.0));
+
+  float n_ = 1.0/7.0;
+  vec3 ns = n_ * D.wyz - D.xzx;
+
+  vec4 j = p - 49.0 * floor(p*ns.z*ns.z);
+  vec4 x_ = floor(j*ns.z);
+  vec4 y_ = floor(j - 7.0*x_);
+
+  vec4 x = x_*ns.x + ns.yyyy;
+  vec4 y = y_*ns.x + ns.yyyy;
+  vec4 h = 1.0 - abs(x) - abs(y);
+
+  vec4 b0 = vec4(x.xy,y.xy);
+  vec4 b1 = vec4(x.zw,y.zw);
+  vec4 s0 = floor(b0)*2.0 + 1.0;
+  vec4 s1 = floor(b1)*2.0 + 1.0;
+  vec4 sh = -step(h,vec4(0.0));
+
+  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
+  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
+
+  vec3 p0 = vec3(a0.xy,h.x);
+  vec3 p1 = vec3(a0.zw,h.y);
+  vec3 p2 = vec3(a1.xy,h.z);
+  vec3 p3 = vec3(a1.zw,h.w);
+
+  vec4 norm = inversesqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+  p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+
+  vec4 m = max(0.6 - vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0);
+  m = m*m;
+  return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+}
+
+// --- FBM ---
+float fbm3(vec2 uv, float t){
+  float total = 0.0;
+  float amplitude = 0.5;
+  float frequency = 1.0;
+  for(int i=0;i<6;i++){
+    vec3 p = vec3(uv*frequency, t*0.1);
+    total += snoise3(p) * amplitude;
+    frequency *= 2.0;
+    amplitude *= 0.5;
+  }
+  return total*0.5 + 0.5;
+}
+
+void main() {
+  vec2 fragCoord = gl_FragCoord.xy;
+  vec2 uv = fragCoord / iResolution.xy;
+  uv = uv*2.0 - 1.0;
+  uv.x *= iResolution.x / iResolution.y;
+
+  // --- 구름 이동 속도 조절 ---
+  uv += vec2(iTime*0.008, iTime*0.015);
+
+  // --- 구름 스케일 조절 ---
+  float n = fbm3(uv * 3.0, iTime);   // 작고 디테일한 구름
+
+  float cloud = smoothstep(0.4,0.75,n);
+
+   // 서서히 나타나는 효과
+    float appearTime = 5.0; 
+    float fadeIn = pow(clamp(iTime / appearTime, 0.0, 1.0), 2.0);
+    float alpha = cloud * fadeIn;
+
+    vec3 cloudColor = vec3(1.0);
+    fragColor = vec4(cloudColor, alpha);
+}
+`;
+
+            // --- Compile Shader Helper ---
+            function compileShader(gl, type, source) {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    console.error(gl.getShaderInfoLog(shader));
+                }
+                return shader;
+            }
+
+            // --- Create Program ---
+            const vertexShader = compileShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+            const fragmentShader = compileShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            gl.useProgram(program);
+
+            // --- Fullscreen Quad ---
+            const vertices = new Float32Array([
+                -1, -1, 1, -1, -1, 1,
+                -1, 1, 1, -1, 1, 1
+            ]);
+            const buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+            const positionLoc = gl.getAttribLocation(program, "position");
+            gl.enableVertexAttribArray(positionLoc);
+            gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+
+            // --- Uniform Locations ---
+            const iTimeLoc = gl.getUniformLocation(program, "iTime");
+            const iResLoc = gl.getUniformLocation(program, "iResolution");
+
+            // --- Render Loop ---
+            function render(t) {
+                t *= 0.001; // seconds
+                gl.uniform1f(iTimeLoc, t);
+                gl.uniform2f(iResLoc, canvas.width, canvas.height);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                requestAnimationFrame(render);
+            }
+            requestAnimationFrame(render);
+
+            // --- Resize Handling ---
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            });
+
+        });
+
+        $(function () {
+            // ---------------- 밤하늘 별 ----------------
+            const canvas = document.getElementById('aestheticCanvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // ---------------- 깜빡이는 흰색 별 ----------------
+            let stars = [];
+            const starCount = 120;
+
+            for (let i = 0; i < starCount; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.5 + 0.5,
+                    alpha: Math.random(),
+                    delta: (Math.random() * 0.02 + 0.005) * (Math.random() < 0.5 ? -1 : 1)
+                });
+            }
+
+            // ---------------- 별똥별 ----------------
+            let shootingStars = [];
+            const SHOOTING_STAR_FREQ = 0.02;
+
+            function createShootingStar() {
+                const speed = 30 + Math.random() * 30;
+                const maxLife = 40 + Math.random() * 20;
+                const length = speed * (6 + Math.random() * 6);
+                const startX = Math.random() * canvas.width;
+                const startY = Math.random() * canvas.height * 0.7;
+                const shootLeft = startX > canvas.width / 2;
+                const baseAngle = shootLeft ? Math.PI : 0;
+                const angleVariation = (Math.random() - 0.5) * (Math.PI / 10);
+                const angle = baseAngle + angleVariation;
+                const color = '255,255,255'; // 흰색
+
+                return {
+                    x: startX, y: startY, speed, length, angle,
+                    opacity: 0.2, life: 0, maxLife, trail: [], color
+                };
+            }
+
+            function drawShootingStar(shoot) {
+                ctx.save();
+                ctx.translate(shoot.x, shoot.y);
+                ctx.rotate(shoot.angle);
+
+                // Tail gradient
+                const gradient = ctx.createLinearGradient(0, 0, -shoot.length, 0);
+                gradient.addColorStop(0, `rgba(${shoot.color},${shoot.opacity * 0.7})`);
+                gradient.addColorStop(0.7, `rgba(${shoot.color},${shoot.opacity * 0.4})`);
+                gradient.addColorStop(1, `rgba(${shoot.color},0)`);
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.moveTo(0, -2.5);
+                ctx.lineTo(-shoot.length, -0.3);
+                ctx.lineTo(-shoot.length, 0.3);
+                ctx.lineTo(0, 2.5);
+                ctx.closePath();
+                ctx.fill();
+
+                // White core
+                ctx.shadowColor = `rgba(255,255,255,${shoot.opacity})`;
+                ctx.shadowBlur = 25;
+                ctx.beginPath();
+                ctx.fillStyle = `rgba(255,255,255,${shoot.opacity})`;
+                ctx.arc(0, 0, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.shadowColor = 'transparent';
+                ctx.restore();
+
+                // Trail particles
+                for (let i = shoot.trail.length - 1; i >= 0; i--) {
+                    const p = shoot.trail[i];
+                    p.opacity -= 0.03;
+                    p.radius *= 0.9;
+                    if (p.opacity <= 0 || p.radius <= 0.1) {
+                        shoot.trail.splice(i, 1);
+                        continue;
+                    }
+                    ctx.beginPath();
+                    ctx.fillStyle = `rgba(${shoot.color},${p.opacity})`;
+                    ctx.shadowColor = `rgba(${shoot.color},${p.opacity * 0.5})`;
+                    ctx.shadowBlur = 2;
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+
+            // ---------------- 애니메이션 ----------------
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // 깜빡이는 흰색 별
+                for (let star of stars) {
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255,255,255,${star.alpha})`;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#ffffff'; // 흰색 글로우
+                    ctx.fill();
+                    star.alpha += star.delta;
+                    if (star.alpha <= 0 || star.alpha >= 1) star.delta *= -1;
+                }
+
+                // 별똥별 생성
+                if (shootingStars.length === 0 && Math.random() < SHOOTING_STAR_FREQ) {
+                    shootingStars.push(createShootingStar());
+                }
+
+                // 별똥별 업데이트
+                for (let i = shootingStars.length - 1; i >= 0; i--) {
+                    const s = shootingStars[i];
+                    s.life++;
+
+                    // trail 추가
+                    s.trail.push({
+                        x: s.x - Math.cos(s.angle) * 8 + (Math.random() - 0.5) * 2,
+                        y: s.y - Math.sin(s.angle) * 8 + (Math.random() - 0.5) * 2,
+                        radius: 0.6 + Math.random() * 0.3,
+                        opacity: s.opacity,
+                        vx: (Math.random() - 0.5) * 0.15,
+                        vy: (Math.random() - 0.5) * 0.15
+                    });
+
+                    s.x += Math.cos(s.angle) * s.speed;
+                    s.y += Math.sin(s.angle) * s.speed;
+
+                    // fade in/out
+                    const fadeIn = 30, fadeOut = 10;
+                    if (s.life < fadeIn) s.opacity = (s.life / fadeIn) ** 2;
+                    else if (s.life > s.maxLife - fadeOut) s.opacity = (s.maxLife - s.life) / fadeOut;
+                    else s.opacity = 1;
+
+                    if (s.x < 0 || s.x > canvas.width || s.y < 0 || s.y > canvas.height) s.opacity = Math.max(s.opacity - 0.02, 0);
+
+                    drawShootingStar(s);
+
+                    if (s.opacity <= 0 || s.life > s.maxLife) shootingStars.splice(i, 1);
+
+                    // trail 이동
+                    for (let j = s.trail.length - 1; j >= 0; j--) {
+                        const p = s.trail[j];
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.opacity -= 0.02;
+                        p.radius *= 0.95;
+                        if (p.opacity <= 0 || p.radius <= 0.1) s.trail.splice(j, 1);
+                        else {
+                            ctx.beginPath();
+                            ctx.fillStyle = `rgba(255,255,255,${p.opacity})`;
+                            ctx.shadowColor = '#ffffff';
+                            ctx.shadowBlur = 2;
+                            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.shadowBlur = 0;
+                        }
+                    }
+                }
+
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+
+        });
+
+
+        //메뉴클릭 섹션이동
+
+        document.querySelectorAll('.sticky-header li').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault(); // 기본 이동 방지
+
+                // href에서 '#' 제거 후 ID로 사용
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth' // 부드러운 스크롤 효과
+                });
+            });
+        });
+
+
+
+        // --- vision ---
+        document.addEventListener("DOMContentLoaded", () => {
+            const lines = document.querySelectorAll(".fadetext > span");
+            const charDelay = 0.03; // 글자 단위 delay
+            const lineDelay = 0.5;  // 문장 간 delay
+
+            // 글자 wrapping 함수
+            function wrapCharacters() {
+                lines.forEach((line, lineIndex) => {
+                    const text = line.getAttribute("data-text") || line.textContent;
+                    line.setAttribute("data-text", text); // 원본 저장
+
+                    let wrapped = "";
+                    const baseDelay = lineIndex * lineDelay;
+
+                    for (let i = 0; i < text.length; i++) {
+                        const delay = (baseDelay + i * charDelay).toFixed(2);
+                        const char = text[i] === " " ? "&nbsp;" : text[i];
+                        wrapped += `<span style="animation-delay:${delay}s">${char}</span>`;
+                    }
+
+                    line.innerHTML = wrapped;
+                });
+            }
+
+            // 애니메이션 실행
+            function startAnimation() {
+                lines.forEach(line => line.classList.add("active"));
+            }
+
+            // 초기화 (다시 사라졌을 때)
+            function resetAnimation() {
+                lines.forEach(line => {
+                    const original = line.getAttribute("data-text");
+                    line.innerHTML = original;
+                    line.classList.remove("active");
+                });
+                wrapCharacters();
+            }
+
+            // IntersectionObserver로 화면 진입/이탈 감지
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // 화면 안으로 들어왔다 → 실행
+                        startAnimation();
+                    } else {
+                        // 화면에서 나갔다 → 초기화
+                        resetAnimation();
+                    }
+                });
+            }, {
+                threshold: 1 // 20% 보여야 인식
+            });
+
+            wrapCharacters();
+            const fadeText = document.querySelector(".fadetext");
+            if (fadeText) observer.observe(fadeText);
+        });
+
+        // --- project ---
+        $(function () {
+            const $window = $(window);
+            const $title = $('.title_project');
+            const $projects = $('.project_box');
+
+            function easeOutCubic(x) {
+                return 1 - Math.pow(1 - x, 3);
+            }
+
+            function animateOnScroll() {
+                const scrollTop = $window.scrollTop();
+                const winH = $window.height();
+                const titleTop = $title.offset().top;
+                const titleH = $title.outerHeight();
+                const titleCenter = titleTop - winH / 2 + titleH / 2;
+
+                const fadeStart = titleCenter - winH * 0.2;
+                const fadeEnd = titleCenter + winH * 0.2;
+
+                // 타이틀 점점 사라지는 중간 시점에 project_box 등장
+                const projectTrigger = fadeStart + (fadeEnd - fadeStart) * 0.4;
+
+                // ===== 타이틀 등장/퇴장 =====
+                if (scrollTop < fadeStart) {
+                    $title.removeClass("in-view");
+                    $projects.removeClass("in-view"); // 초기화
+                } else if (scrollTop >= fadeStart && scrollTop <= fadeEnd) {
+                    const progress = (scrollTop - fadeStart) / (fadeEnd - fadeStart);
+                    const eased = easeOutCubic(progress);
+
+                    $title.css({
+                        opacity: eased,
+                        transform: `translateY(${60 * (1 - eased)}px)`
+                    });
+
+                    if (scrollTop >= projectTrigger) {
+                        showProjects();
+                    }
+                } else {
+                    $title.css({ opacity: 0, transform: "translateY(-40px)" });
+                    showProjects();
+                }
+            }
+
+            function showProjects() {
+                const windowHeight = $window.height();
+                const scrollTop = $window.scrollTop();
+
+                $projects.each(function (i) {
+                    const $el = $(this);
+                    const offsetTop = $el.offset().top;
+
+                    if (scrollTop + windowHeight * 0.85 > offsetTop) {
+                        setTimeout(() => {
+                            $el.addClass("in-view"); // CSS가 애니메이션 처리
+                        }, i * 100); // 순차 등장
+                    } else {
+                        $el.removeClass("in-view"); // 화면 벗어나면 초기화
+                    }
+                });
+            }
+
+            $window.on("scroll load resize", animateOnScroll);
+            animateOnScroll();
+        });
+
+        // --- side-project ---
+        document.addEventListener("DOMContentLoaded", () => {
+            const $window = $(window);
+            const $titles = $('.title_side-project, .title_design, .title_contact'); // 적용할 모든 타이틀
+
+            // 타이틀 스크롤 애니메이션
+            function animateTitles() {
+                const scrollTop = $window.scrollTop();
+                const winH = $window.height();
+
+                $titles.each(function () {
+                    const $title = $(this);
+                    const titleTop = $title.offset().top;
+                    const titleBottom = titleTop + $title.outerHeight();
+
+                    // 화면 안에 들어오면 in-view, 나가면 제거
+                    if (scrollTop + winH * 0.85 > titleTop && scrollTop < titleBottom) {
+                        $title.addClass('in-view');
+                    } else {
+                        $title.removeClass('in-view');
+                    }
+                });
+            }
+
+            $window.on('scroll load resize', animateTitles);
+            animateTitles(); // 초기 실행
+
+            // side-box 클릭 토글
+            const sideBoxes = document.querySelectorAll("#side-project .side-box");
+
+            sideBoxes.forEach(box => {
+                box.addEventListener("click", () => {
+                    sideBoxes.forEach(otherBox => otherBox.classList.remove("active"));
+                    box.classList.add("active");
+                });
+            });
+        });
+
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const linkQr = document.querySelector(".link_qr");
+            const qrPopup = linkQr.querySelector(".qr_popup");
+            const qrIcon = linkQr.querySelector(".qr_icon");
+            const closeBtn = linkQr.querySelector(".close_btn");
+
+            // 아이콘 클릭 시 토글
+            qrIcon.addEventListener("click", () => {
+                qrPopup.classList.toggle("active");
+            });
+
+            // 닫기 버튼 클릭 시 닫기
+            closeBtn.addEventListener("click", () => {
+                qrPopup.classList.remove("active");
+            });
+        });
+
+
+
+
+    </script>
+
+    <script type="module">
+        import * as THREE from "https://cdn.skypack.dev/three@0.133.1/build/three.module";
+        import { OrbitControls } from 'https://cdn.skypack.dev/three@0.133.1/examples/jsm/controls/OrbitControls';
+
+        //DOM
+        const containerEl = document.querySelector('.cloud-text');
+
+        //Settings
+        const fontName = 'Verdana';
+        const textureFontSize = 60; //첫 번째 줄 기준
+        const fontScaleFactor = 0.05;
+
+        //Scene globals
+        let scene, camera, renderer, textCanvas, textCtx, particleGeometry, particleMaterial, instancedMesh, dummy, clock;
+
+        // 텍스트
+        let lines = ["Welcome to my sky", "eeezuu Portfolio"];
+        let fontSizes = [textureFontSize, textureFontSize * 0.6]; //두 번째 줄 작게
+
+        //Coordinates / particles
+        let textureCoordinates = [];
+        let particles = [];
+        let stringBox = { wTexture: 500, wScene: 0, hTexture: 100, hScene: 0 };
+
+        let textOffsetY = 3;
+
+        // ------------------
+        init();
+        refreshText();
+        render();
+
+        // ------------------
+        function init() {
+            const aspect = window.innerWidth / window.innerHeight;
+            camera = new THREE.OrthographicCamera(
+                -aspect * 10, aspect * 10, 10, -10, 0.1, 1000
+            );
+            camera.position.z = 40; //원하는 깊이로 고정
+
+            scene = new THREE.Scene();
+
+            renderer = new THREE.WebGLRenderer({ alpha: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            containerEl.appendChild(renderer.domElement);
+
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableZoom = false;
+            controls.enablePan = false;
+
+            textCanvas = document.createElement('canvas');
+            textCtx = textCanvas.getContext('2d');
+
+            particleGeometry = new THREE.PlaneGeometry(1, 1);
+            const texture = new THREE.TextureLoader().load('https://ksenia-k.com/img/threejs/smoke.png');
+            particleMaterial = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                alphaMap: texture,
+                depthTest: false,
+                opacity: 0.3,
+                transparent: true
+            });
+
+            dummy = new THREE.Object3D();
+            clock = new THREE.Clock();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        // ------------------
+        function refreshText() {
+            stringBox.wScene = stringBox.wTexture * fontScaleFactor;
+            stringBox.hScene = stringBox.hTexture * fontScaleFactor;
+
+            sampleCoordinates();
+
+            particles = textureCoordinates.map(c => {
+                const p = new Particle([c.x * fontScaleFactor, c.y * fontScaleFactor]);
+
+                // y좌표 기준으로 두 번째 줄 판단 (첫 줄 높이 = fontSizes[0] * 0.9 정도)
+                if (c.y > fontSizes[0] * 0.9) {
+                    p.maxScale *= 0.1; //두 번째 줄 입자 작게
+                }
+
+                return p;
+            });
+
+
+            recreateInstancedMesh();
+            makeTextFitScreen();
+        }
+
+        // ------------------
+        function sampleCoordinates() {
+            //캔버스 크기 자동 계산
+            textCtx.font = `100 ${textureFontSize}px ${fontName}`;
+            const metrics = textCtx.measureText(lines[0]);
+            const width = Math.max(metrics.width, 200);
+            const height = fontSizes.reduce((sum, fs) => sum + fs * 1.2, 0); //줄 높이 합계
+
+            textCanvas.width = width + 20;
+            textCanvas.height = height + 20;
+            stringBox.wTexture = textCanvas.width;
+            stringBox.hTexture = textCanvas.height;
+
+            textCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
+
+            let lineSpacing = 20;
+            let yOffset = -20;
+            for (let i = 0; i < lines.length; i++) {
+                textCtx.font = `100 ${fontSizes[i]}px ${fontName}`;
+                textCtx.fillStyle = '#2a9d8f';
+
+                const metrics = textCtx.measureText(lines[i]);
+                const x = (textCanvas.width - metrics.width) / 2;  //캔버스 가로 중앙
+                yOffset += fontSizes[i] * 0.8 + lineSpacing;
+                textCtx.fillText(lines[i], x, yOffset);
+            }
+
+            // 이미지 데이터 샘플링
+            const imageData = textCtx.getImageData(0, 0, textCanvas.width, textCanvas.height);
+            textureCoordinates = [];
+            for (let y = 0; y < textCanvas.height; y += 1) {
+                for (let x = 0; x < textCanvas.width; x += 1) {
+                    if (imageData.data[(x + y * textCanvas.width) * 4] > 0) {
+                        textureCoordinates.push({ x, y });
+                    }
+                }
+            }
+        }
+
+        // ------------------
+        function Particle([x, y]) {
+            this.x = x + 0.15 * (Math.random() - 0.5);
+            this.y = y + 0.15 * (Math.random() - 0.5);
+            this.z = 0;
+
+            this.isGrowing = true;
+            this.toDelete = false;
+
+            this.scale = 0;
+            this.maxScale = 0.1 + 1 * Math.pow(Math.random(), 10);
+            this.deltaScale = 0.03 + 0.03 * Math.random();
+            this.age = Math.PI * Math.random();
+            this.ageDelta = 0.01 + 0.02 * Math.random();
+            this.rotationZ = 0.5 * Math.random() * Math.PI;
+            this.deltaRotation = 0.01 * (Math.random() - 0.5);
+
+            this.grow = function () {
+                this.age += this.ageDelta;
+                this.rotationZ += this.deltaRotation;
+                if (this.isGrowing) {
+                    this.scale += this.deltaScale;
+                    if (this.scale >= this.maxScale) this.isGrowing = false;
+                } else if (this.toDelete) {
+                    this.scale -= this.deltaScale;
+                    if (this.scale <= 0) {
+                        this.scale = 0;
+                        this.deltaScale = 0;
+                    }
+                } else {
+                    this.scale = this.maxScale + 0.3 * Math.sin(this.age);
+                }
+            }
+        }
+
+        // ------------------
+        function recreateInstancedMesh() {
+            if (instancedMesh) scene.remove(instancedMesh);
+            instancedMesh = new THREE.InstancedMesh(particleGeometry, particleMaterial, particles.length);
+            scene.add(instancedMesh);
+
+            /* instancedMesh.position.x = -0.5 * stringBox.wScene;
+            instancedMesh.position.y = -0.5 * stringBox.hScene; */
+        }
+
+        function updateParticlesMatrices() {
+            particles.forEach((p, idx) => {
+                p.grow();
+                dummy.quaternion.copy(camera.quaternion);
+                dummy.rotation.z += p.rotationZ;
+                dummy.scale.set(p.scale, p.scale, p.scale);
+
+                // 캔버스 중앙 기준으로 Scene 중앙 맞춤
+                dummy.position.set(
+                    p.x - stringBox.wTexture / 2 * fontScaleFactor, //X축 중앙
+                    stringBox.hScene - p.y,                         //Y축 반전
+                    p.z
+                );
+
+                dummy.updateMatrix();
+                instancedMesh.setMatrixAt(idx, dummy.matrix);
+            });
+            instancedMesh.instanceMatrix.needsUpdate = true;
+        }
+
+        function makeTextFitScreen() {
+            /* const fov = camera.fov * (Math.PI / 180);
+            const fovH = 2 * Math.atan(Math.tan(fov / 2) * camera.aspect);
+            const dx = Math.abs(0.7 * stringBox.wScene / Math.tan(0.5 * fovH));
+            const dy = Math.abs(0.6 * stringBox.hScene / Math.tan(0.5 * fov));
+            const factor = Math.max(dx, dy) / camera.position.length();
+            if (factor > 1) camera.position.multiplyScalar(factor); */
+        }
+
+        function render() {
+            requestAnimationFrame(render);
+            updateParticlesMatrices();
+            renderer.render(scene, camera);
+        }
+
+    </script>
+
+
+</head>
+
+<body>
+    <!-- 1. 인트로 -->
+    <!-- <section id="intro">
+        <div class="intro-bg"></div> 
+        <img src="img/5e34788077d858e1cbd6ce30323910d6-Photoroom 1.png" class="star" alt="별 이미지">
+        <div class="flash"></div>
+        
+    </section> -->
+
+    <!-- 2. 포트폴리오 -->
+    <div id="portfolio">
+
+        <!-- 메인 비주얼 -->
+        <!--        <section class="main-visual">
+            <div class="bg-image">
+                <img src="img/main-visual.png" alt="메인 배경">
+            </div>
+
+            클라우드 텍스트 / 입자 캔버스        
+        </section> -->
+
+        <section class="main-visual">
+            <div class="bg-image">
+                <img src="img/포폴메인22.jpg" alt="메인 배경">
+            </div>
+
+            <div class="cloud-text"></div>
+        </section>
+
+        <!-- 헤더 -->
+        <header class="sticky-header">
+            <div class="inner">
+                <h1 class="logo"><a href="#">@eeezuu</a></h1>
+                <nav>
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#about_me">About</a></li>
+                        <li><a href="#project">Works</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <section id="about_me">
+            <div class="inner">
+                <h2 class="title_about_me">About me</h2>
+                <div class="about_list">
+                    <div class="about">
+                        <div class="profile">
+                            <img src="img/KakaoTalk_Photo_2025-11-19-13-28-02.jpeg" alt="eeezuu">
+                        </div><!-- .profile end -->
+                        <div class="about_btn">
+                            <a href="#">이력서 PDF</a>
+                        </div><!-- .about btn end-->
+                    </div><!-- .about end -->
+                    <div class="about_box">
+                        <div class="info">
+                            <div class="profile_info">
+                                <h4 class="title">Profile</h4>
+                                <ul class="profile_list">
+                                    <li>
+                                        <span class="label">NAME</span>
+                                        <span class="value">김은주</span>
+                                    </li>
+                                    <li>
+                                        <span class="label">BIRTH</span>
+                                        <span class="value">1995.05.25</span>
+                                    </li>
+                                    <li>
+                                        <span class="label">PHONE</span>
+                                        <span class="value">010-4148-2098</span>
+                                    </li>
+                                    <li>
+                                        <span class="label">E-MAIL</span>
+                                        <span class="value">eeezuu525@naver.com</span>
+                                    </li>
+                                </ul>
+                            </div><!-- .profile_info end -->
+                            <div class="education">
+                                <h4 class="title">education</h4>
+                                <ul class="education_list">
+                                    <li>
+                                        <span class="year">2025</span>
+                                        그린컴퓨터아카데미 UI/UX 반응형 웹퍼블리셔 양성과정 수료
+                                    </li>
+                                    <li>
+                                        <span class="year">2025</span>
+                                        고부기 크리에이터 수료
+                                    </li>
+                                    <li>
+                                        <span class="year">2016</span>
+                                        동의과학대학교 실내건축학과 졸업
+                                    </li>
+                                    <li>
+                                        <span class="year">2014</span>
+                                        경혜여자고등학교 졸업
+                                    </li>
+                                </ul>
+                            </div><!-- .education end -->
+                        </div><!-- .info end -->
+                        <div class="Awards">
+                            <h4 class="title">Achievements</h4>
+                            <ul class="education_list">
+                                <li>
+                                    2025 문화체육관광부·한국관광공사 주최 대한민국 관광공모전(사진) 입상
+                                </li>
+                                <li>
+                                    2024 부산관광공사 주최 세븐브릿지 릴스 공모전 우수상 수상
+                                </li>
+                            </ul>
+                        </div><!-- .Awards -->
+                        <div class="skill">
+                            <h4 class="title">skill</h4>
+                            <div class="skill_icons">
+                                <div class="skill_item">
+                                    <img src="icon/visualstudiocode.svg" alt="Visual Studio Code">
+                                    <p class="skill_desc">CSS 레이아웃 능숙</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/github.svg" alt="github">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/html.svg" alt="html">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/css.svg" alt="css">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/js.svg" alt="JS">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/figma.svg" alt="figma">
+                                    <p class="skill_desc">HTML 기본 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/photo.svg" alt="포토샵">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/ai.svg" alt="일러스트">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/lr.svg" alt="라이트룸">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/pr.svg" alt="프리미어">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <div class="skill_item">
+                                    <img src="icon/ae.svg" alt="에펙">
+                                    <p class="skill_desc">JS 기초 가능</p>
+                                </div>
+                                <!-- 나머지 8개 아이콘도 동일 구조 반복 -->
+                            </div>
+                        </div><!-- .skill end -->
+                    </div><!-- .about_box end -->
+                </div><!-- .about_list -->
+            </div><!-- .inner end -->
+        </section>
+
+        <!-- 움직이는 구름-->
+
+        <div class="bottom-wrapper">
+            <div class="bottom">
+                <div class="bg3"></div>
+                <div class="bg2"></div>
+                <div class="bg1"></div>
+            </div><!-- .bottom end -->
+        </div>
+
+
+        <div class="bg-gradient">
+
+            <section id="project">
+                <div class="inner">
+                    <h2 class="title_project">PROJECT</h2>
+                    <div class="project_wrap">
+                        <div class="project_box">
+                            <div class="image">
+                                <img src="img/mcst.png" alt="문화체육관광부">
+                            </div><!-- image -->
+                            <div class="text_box">
+                                <div class="project_header">
+                                    <h3>문화체육관광부</h3>
+                                    <span>문화체육관광부의 신뢰감과 소통을 핵심 가치로 한 반응형 웹사이트 리뉴얼 프로젝트</span>
+                                </div><!-- .project_header end -->
+
+                                <div class="project_info">
+                                    <ul class="info_label">
+                                        <li>프로젝트</li>
+                                        <li>프로그램</li>
+                                        <li>사용언어</li>
+                                        <li>기여도</li>
+                                    </ul><!-- .info_label -->
+
+                                    <ul class="info_value">
+                                        <li>[반응형] 웹사이트 리뉴얼</li>
+                                        <li>VSCode, Figma,Photoshop</li>
+                                        <li>html, css, Js, JQuery</li>
+                                        <li>기획, 디자인, 퍼블리싱 100%</li>
+                                    </ul><!-- .info_value -->
+                                </div><!-- .project_info -->
+
+
+                                <div class="project_links">
+                                    <a href="https://eeezuu525.github.io/MCST/" target='_blank' class="btn link_web">
+                                        <span>Web Site</span>
+                                        <!--  <span class="cloud_bg"></span> -->
+                                    </a><!-- .link_web -->
+
+                                    <a href="#" class="btn link_process">
+                                        <span>Process</span>
+                                        <!-- <span class="cloud_bg"></span> -->
+                                    </a><!-- .link_process -->
+
+                                    <a href="#" class="btn link_figma">
+                                        <span>Figma</span>
+                                        <!--  <span class="cloud_bg"></span> -->
+                                    </a><!-- .link_figma -->
+
+
+                                    <div class="btn link_qr">
+                                        <img class="qr_icon" src="icon/qr_icon.svg" alt="QR코드">
+                                        <div class="qr_popup">
+                                            <div class="qr_popup_inner">
+                                                <button class="close_btn">
+                                                    <img src="icon/iconamoon_close-bold.svg" alt="닫기">
+                                                </button>
+                                                <img src="img/QR Code.svg" alt="QR코드 이미지">
+                                            </div>
+                                        </div>
+                                    </div><!-- .btn link_qr -->
+
+                                </div><!-- .project_links -->
+
+                            </div><!-- .text_box -->
+                        </div><!-- .project_box -->
+                        <div class="project_box">
+                            <div class="image">
+                                <img src="img/sony.png" alt="sony">
+                            </div><!-- image -->
+                            <div class="text_box">
+                                <div class="project_header">
+                                    <h3>SONY</h3>
+                                    <span>직접 촬영한 이미지를 중심으로, 감각적이고 몰입감 있는 웹사이트 리뉴얼한 프로젝트</span>
+                                </div><!-- .project_header end -->
+
+                                <div class="project_info">
+                                    <ul class="info_label">
+                                        <li>프로젝트</li>
+                                        <li>프로그램</li>
+                                        <li>사용언어</li>
+                                        <li>기여도</li>
+                                    </ul><!-- .info_label -->
+
+                                    <ul class="info_value">
+                                        <li>웹사이트 리뉴얼</li>
+                                        <li>VSCode, Figma,Photoshop</li>
+                                        <li>html, css, Js, JQuery</li>
+                                        <li>기획, 디자인, 퍼블리싱 100%</li>
+                                    </ul><!-- .info_value -->
+                                </div><!-- .project_info -->
+
+
+                                <div class="project_links">
+                                    <a href="https://eeezuu525.github.io/SONY/" target='_blank' class="btn link_web">
+                                        <span>Web Site</span>
+                                        <!-- <span class="cloud_bg"></span> -->
+                                    </a><!-- .link_web -->
+
+                                    <a href="#" class="btn link_process">
+                                        <span>Process</span>
+                                        <!--  <span class="cloud_bg"></span> -->
+                                    </a><!-- .link_process -->
+
+                                    <a href="#" class="btn link_figma">
+                                        <span>Figma</span>
+                                        <!--  <span class="cloud_bg"></span> -->
+                                    </a><!-- .link_figma -->
+
+
+                                    <div class="btn link_qr">
+                                        <img class="qr_icon" src="icon/qr_icon.svg" alt="QR코드">
+                                        <div class="qr_popup">
+                                            <div class="qr_popup_inner">
+                                                <button class="close_btn">
+                                                    <img src="icon/iconamoon_close-bold.svg" alt="닫기">
+                                                </button>
+                                                <img src="img/QR Code.svg" alt="QR코드 이미지">
+                                            </div>
+                                        </div>
+                                    </div><!-- .btn link_qr -->
+
+                                </div><!-- .project_links -->
+
+                            </div><!-- .text_box -->
+                        </div><!-- .project_box -->
+                        <div class="project_box">
+                            <div class="image">
+                                <img src="img/project3.png" alt="해운대블루라인파크">
+                            </div><!-- image -->
+                            <div class="text_box">
+                                <div class="project_header">
+                                    <h3>해운대블루라인파크</h3>
+                                    <span>해운대 블루라인파크를 누구나 즐길 수 있도록 리뉴얼한 경험 디자인 프로젝트</span>
+                                </div><!-- .project_header end -->
+
+                                <div class="project_info">
+                                    <ul class="info_label">
+                                        <li>프로젝트</li>
+                                        <li>프로그램</li>
+                                        <li>사용언어</li>
+                                        <li>기여도</li>
+                                    </ul><!-- .info_label -->
+
+                                    <ul class="info_value">
+                                        <li>웹사이트 리뉴얼</li>
+                                        <li>VSCode, Figma, Photoshop</li>
+                                        <li>html, css, Js, JQuery</li>
+                                        <li>기획, 디자인, 퍼블리싱 100%</li>
+                                    </ul><!-- .info_value -->
+                                </div><!-- .project_info -->
+
+
+                                <div class="project_links">
+                                    <a href="#" class="btn link_web">
+                                        <span>Web Site</span>
+                                        <!-- <span class="cloud_bg"></span> -->
+                                    </a><!-- .link_web -->
+
+                                    <a href="#" class="btn link_process">
+                                        <span>Process</span>
+                                        <!-- <span class="cloud_bg"></span> -->
+                                    </a><!-- .link_process -->
+
+                                    <a href="#" class="btn link_figma">
+                                        <span>Figma</span>
+                                        <!--  <span class="cloud_bg"></span> -->
+                                    </a><!-- .link_figma -->
+
+
+                                    <div class="btn link_qr">
+                                        <img class="qr_icon" src="icon/qr_icon.svg" alt="QR코드">
+                                        <div class="qr_popup">
+                                            <div class="qr_popup_inner">
+                                                <button class="close_btn">
+                                                    <img src="icon/iconamoon_close-bold.svg" alt="닫기">
+                                                </button>
+                                                <img src="img/QR Code.svg" alt="QR코드 이미지">
+                                            </div>
+                                        </div>
+                                    </div><!-- .btn link_qr -->
+
+                                </div><!-- .project_links -->
+
+                            </div><!-- .text_box -->
+                        </div><!-- .project_box -->
+                    </div><!-- .project_wrap -->
+                </div><!-- .inner end -->
+            </section><!-- .project end -->
+
+            <section id="side-project">
+                <div class="inner">
+                    <h2 class="title_side-project">SIDE PROJECT</h2>
+                    <div class="list">
+                        <div id="i1" class="side-box active">
+                            <div class="project_header">
+                                <h3>SOCAR</h3>
+                                <span class="main">SOCAR 웹사이트를 반응형으로 구현한 클론 페이지 프로젝트</span>
+                                <span class="serve">클론 페이지</span>
+
+                            </div><!-- .project_header end -->
+
+                            <div class="item">
+                                <div class="image">
+                                    <img src="img/socar.png" alt="socar">
+                                </div><!-- image -->
+                                <div class="text_box">
+
+                                    <div class="project_info">
+                                        <ul class="info_label">
+                                            <li>프로젝트</li>
+                                            <li>사용언어</li>
+                                            <li>프로그램</li>
+                                            <li>기여도</li>
+                                        </ul><!-- .info_label -->
+
+                                        <ul class="info_value">
+                                            <li>클론 메인페이지</li>
+                                            <li>html, css, javascript</li>
+                                            <li>VSCode, Figma</li>
+                                            <li>퍼블리싱 100%</li>
+                                        </ul><!-- .info_value -->
+                                    </div><!-- .project_info -->
+
+
+                                    <div class="project_links">
+                                        <a href="https://eeezuu525.github.io/SONY/" target='_blank'
+                                            class="btn link_web">
+                                            <span>Web Site</span>
+                                            <!-- <span class="cloud_bg"></span> -->
+                                        </a><!-- .link_web -->
+
+                                        <a href="#" class="btn link_process">
+                                            <span>Process</span>
+                                            <!--  <span class="cloud_bg"></span> -->
+                                        </a><!-- .link_process -->
+
+                                    </div><!-- .project_links -->
+
+                                </div><!-- .text_box -->
+                            </div>
+
+                        </div>
+                        <div id="i2" class="side-box">
+                            <div class="project_header">
+                                <h3>머니트리</h3>
+                                <span class="main">머니트리 웹사이트를 피그마로 구현한 클론 페이지 프로젝트</span>
+                                <span class="serve">클론 페이지</span>
+                            </div><!-- .project_header end -->
+
+                            <div class="item">
+                                <div class="image">
+                                    <img src="img/머니트리.png" alt="머니트리">
+                                </div><!-- image -->
+                                <div class="text_box">
+
+                                    <div class="project_info">
+                                        <ul class="info_label">
+                                            <li>프로젝트</li>
+                                            <li>사용언어</li>
+                                            <li>프로그램</li>
+                                            <li>기여도</li>
+                                        </ul><!-- .info_label -->
+
+                                        <ul class="info_value">
+                                            <li>클론 메인페이지</li>
+                                            <li>Prototype, Component</li>
+                                            <li>Figma, Photoshop</li>
+                                            <li>퍼블리싱 100%</li>
+                                        </ul><!-- .info_value -->
+                                    </div><!-- .project_info -->
+
+
+                                    <div class="project_links">
+                                        <a href="https://eeezuu525.github.io/SONY/" target='_blank'
+                                            class="btn link_web">
+                                            <span>Web Site</span>
+                                            <!-- <span class="cloud_bg"></span> -->
+                                        </a><!-- .link_web -->
+
+                                        <a href="#" class="btn link_process">
+                                            <span>Process</span>
+                                            <!--  <span class="cloud_bg"></span> -->
+                                        </a><!-- .link_process -->
+
+                                        <a href="#" class="btn link_figma">
+                                            <span>Figma</span>
+                                            <!--  <span class="cloud_bg"></span> -->
+                                        </a><!-- .link_figma -->
+
+                                    </div><!-- .project_links -->
+
+                                </div><!-- .text_box -->
+                            </div>
+
+                        </div>
+                        <div id="i3" class="side-box">
+                            <div class="project_header">
+                                <h3>포켓CU</h3>
+                                <span class="main">포켓CU 웹사이트를 피그마로 구현한 클론 페이지 프로젝트</span>
+                                <span class="serve">모바일앱 리뉴얼</span>
+                            </div><!-- .project_header end -->
+
+                            <div class="item">
+                                <div class="image">
+                                    <img src="img/CU.png" alt="머니트리">
+                                </div><!-- image -->
+                                <div class="text_box">
+
+                                    <div class="project_info">
+                                        <ul class="info_label">
+                                            <li>프로젝트</li>
+                                            <li>사용언어</li>
+                                            <li>프로그램</li>
+                                            <li>기여도</li>
+                                        </ul><!-- .info_label -->
+
+                                        <ul class="info_value">
+                                            <li>클론 메인페이지</li>
+                                            <li>html, css, javascript</li>
+                                            <li>VSCode, Figma</li>
+                                            <li>퍼블리싱 100%</li>
+                                        </ul><!-- .info_value -->
+                                    </div><!-- .project_info -->
+
+
+                                    <div class="project_links">
+                                        <a href="https://eeezuu525.github.io/SONY/" target='_blank'
+                                            class="btn link_web">
+                                            <span>Web Site</span>
+                                            <!-- <span class="cloud_bg"></span> -->
+                                        </a><!-- .link_web -->
+
+                                        <a href="#" class="btn link_process">
+                                            <span>Process</span>
+                                            <!--  <span class="cloud_bg"></span> -->
+                                        </a><!-- .link_process -->
+
+                                        <a href="#" class="btn link_figma">
+                                            <span>Figma</span>
+                                            <!--  <span class="cloud_bg"></span> -->
+                                        </a><!-- .link_figma -->
+
+                                    </div><!-- .project_links -->
+
+                                </div><!-- .text_box -->
+                            </div>
+
+                        </div>
+                        <div id="i4" class="side-box">
+                            <div class="project_header">
+                                <h3>머니트리</h3>
+                                <span class="main">머니트리 웹사이트를 피그마로 구현한 클론 페이지 프로젝트</span>
+                                <span class="serve">모바일앱 리뉴얼</span>
+                            </div><!-- .project_header end -->
+
+                            <div class="item">
+                                <div class="image">
+                                    <img src="img/머니트리.png" alt="머니트리">
+                                </div><!-- image -->
+                                <div class="text_box">
+
+                                    <div class="project_info">
+                                        <ul class="info_label">
+                                            <li>프로젝트</li>
+                                            <li>사용언어</li>
+                                            <li>프로그램</li>
+                                            <li>기여도</li>
+                                        </ul><!-- .info_label -->
+
+                                        <ul class="info_value">
+                                            <li>클론 메인페이지</li>
+                                            <li>html, css, javascript</li>
+                                            <li>VSCode, Figma</li>
+                                            <li>퍼블리싱 100%</li>
+                                        </ul><!-- .info_value -->
+                                    </div><!-- .project_info -->
+
+
+                                    <div class="project_links">
+                                        <a href="https://eeezuu525.github.io/SONY/" target='_blank'
+                                            class="btn link_web">
+                                            <span>Web Site</span>
+                                            <!-- <span class="cloud_bg"></span> -->
+                                        </a><!-- .link_web -->
+
+                                        <a href="#" class="btn link_process">
+                                            <span>Process</span>
+                                            <!--  <span class="cloud_bg"></span> -->
+                                        </a><!-- .link_process -->
+
+                                        <a href="#" class="btn link_figma">
+                                            <span>Figma</span>
+                                            <!--  <span class="cloud_bg"></span> -->
+                                        </a><!-- .link_figma -->
+
+                                    </div><!-- .project_links -->
+
+                                </div><!-- .text_box -->
+                            </div>
+
+                        </div>
+
+
+
+
+
+
+                    </div><!-- .list -->
+                </div>
+            </section><!-- .side-project end -->
+
+            <section id="design">
+                <div class="inner">
+                    <h2 class="title_design">DESIGN</h2>
+                    <div class="list">
+                        <div class="item">
+                            <img src="img/design주토피아.png" alt="">
+                        </div>
+                        <div class="item">
+                            <img src="img/design1.jpeg" alt="">
+                        </div>
+                        <div class="item">
+                            <img src="img/design이벤트-캠핑장.png" alt="">
+                        </div>
+                        <div class="item">
+                            <img src="img/design2.jpeg" alt="">
+                        </div>
+                    </div>
+
+
+                </div>
+            </section><!-- .design end -->
+
+
+
+
+
+
+            <section id="contact">
+                <div class="inner">
+                    <h2 class="title_contact">CONTACT</h2>
+
+                    <div class="vision">
+                        <h2><img src="img/dd.png" alt=""></h2>
+                        <p class="fadetext">
+                            <span>아침의 빛처럼 <b>새로운 가능성을</b> 향해,</span>
+                            <span>낮의 구름처럼 <b>부드럽게</b> 이어지고,</span>
+                            <span>밤의 별처럼 <b>나만의 색으로</b> 세상을 비춥니다.</span>
+                            <span>하루의 하늘을 쌓아가듯,</span>
+                            <span>매 순간의 일에도 진심을 담아 꾸준히 빛나는 사람이 되겠습니다.</span>
+                        </p>
+                    </div><!-- vision -->
+
+                    <div class="contact_wrap">
+                        <p>Create with me</p>
+                        <div class="main">
+                            <div class="address">
+                                <img src="img/KakaoTalk.png" alt="">
+
+                            </div>
+
+                            <div class="call">
+                                <div class="phone">
+                                    <img src="icon/ic_twotone-phone-iphone.svg" alt="폰아이콘">
+                                    <span>010-4148-2098</span>
+                                </div>
+
+                                <div class="e-mail">
+                                    <img src="icon/mingcute_mail-fill.svg" alt="메일아이콘">
+                                    <span> eeezuu525@naver.com</span>
+                                </div>
+
+                                <div class="btn_wrap">
+                                    <a href="#" class="pdf">포트폴리오 PDF</a>
+                                    <a href="#" class="git">GITHUB</a>
+                                </div><!-- .btn_wrap -->
+                            </div><!-- call -->
+
+
+                        </div>
+                    </div><!-- .contact_wrap -->
+                </div>
+            </section><!-- .contact end -->
+
+
+            <div class="cloud_layer">
+                <canvas id="webglCanvas"></canvas>
+            </div>
+
+            <div class="stars_layer">
+                <canvas id="aestheticCanvas"></canvas>
+            </div><!-- .stars_layer -->
+
+
+
+        </div><!-- .bg-gradient end -->
+
+
+
+
+    </div><!-- .portfolio end -->
+</body>
+
+</html>
